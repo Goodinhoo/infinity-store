@@ -1,0 +1,464 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// -----------------------------------------
+// USERS & ACCOUNTS (NextAuth)
+// -----------------------------------------
+model User {
+  id            Int       @id @default(autoincrement())
+  name          String? // NextAuth uses this
+  username      String?   @unique // Minecraft Nickname
+  email         String?   @unique
+  emailVerified DateTime? // NextAuth uses this
+  password      String?
+  image         String? // NextAuth uses this
+  role          String    @default("USER") // USER, ADMIN, MODERATOR
+  balance       Float     @default(0.0) // Virtual Coins
+  avatar        String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts          Account[]
+  sessions          Session[]
+  orders            Order[]
+  tickets           Ticket[]
+  ticketReplies     TicketReply[]
+  posts             BlogPost[]
+  forumTopics       ForumTopic[]
+  forumReplies      ForumReply[]
+  fortuneHistory    FortuneWheelHistory[]
+  chestItems        ChestItem[]
+  giftCardsRedeemed GiftCard[]
+  suggestions       Suggestion[]
+  suggestionVotes   SuggestionVote[]
+  creatorCodes      CreatorCode[]
+}
+
+model Account {
+  id                Int     @id @default(autoincrement())
+  userId            Int
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           Int      @id @default(autoincrement())
+  sessionToken String   @unique
+  userId       Int
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// -----------------------------------------
+// STORE (Loja)
+// -----------------------------------------
+model Category {
+  id          Int      @id @default(autoincrement())
+  name        String
+  slug        String   @unique
+  description String?
+  icon        String? // Icon name
+  order       Int      @default(0)
+  isHidden    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products Product[]
+  coupons  Coupon[]
+}
+
+model Product {
+  id                 Int      @id @default(autoincrement())
+  name               String
+  description        String
+  price              Float
+  imageUrl           String?
+  categoryId         Int
+  category           Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  isFeatured         Boolean  @default(false)
+  isHidden           Boolean  @default(false)
+  showInVipTable     Boolean  @default(false)
+  command            String?
+  discountPercentage Int?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  orderItems       OrderItem[]
+  coupons          Coupon[]
+  vipFeatureValues ProductVipFeatureValue[]
+}
+
+model Coupon {
+  id          Int       @id @default(autoincrement())
+  code        String    @unique
+  discountPct Int
+  maxUses     Int?
+  uses        Int       @default(0)
+  expiresAt   DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+
+  orders     Order[]
+  categories Category[]
+  products   Product[]
+}
+
+model GiftCard {
+  id        Int       @id @default(autoincrement())
+  code      String    @unique
+  amount    Float // Amount of balance this card gives
+  isUsed    Boolean   @default(false)
+  usedById  Int?
+  usedBy    User?     @relation(fields: [usedById], references: [id])
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model Order {
+  id            Int          @id @default(autoincrement())
+  userId        Int?
+  user          User?        @relation(fields: [userId], references: [id])
+  player        String // Nick do jogador
+  total         Float
+  status        String       @default("PENDING") // PENDING, PAID, CANCELLED
+  couponId      Int?
+  coupon        Coupon?      @relation(fields: [couponId], references: [id])
+  creatorCodeId Int?
+  creatorCode   CreatorCode? @relation(fields: [creatorCodeId], references: [id])
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  items OrderItem[]
+}
+
+model CreatorCode {
+  id              Int      @id @default(autoincrement())
+  code            String   @unique
+  discountPercent Int
+  rewardPercent   Int
+  creatorId       Int
+  creator         User     @relation(fields: [creatorId], references: [id])
+  uses            Int      @default(0)
+  totalGenerated  Float    @default(0.0) // Total value generated for the store
+  totalRewarded   Float    @default(0.0) // Total balance given to the creator
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  orders Order[]
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int     @default(1)
+  price     Float
+}
+
+// -----------------------------------------
+// TICKETS (Suporte)
+// -----------------------------------------
+model Ticket {
+  id        Int      @id @default(autoincrement())
+  title     String
+  status    String   @default("OPEN") // OPEN, ANSWERED, CLOSED
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  replies TicketReply[]
+}
+
+model TicketReply {
+  id        Int      @id @default(autoincrement())
+  content   String
+  ticketId  Int
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+// -----------------------------------------
+// BLOG (Notícias)
+// -----------------------------------------
+model BlogPost {
+  id        Int      @id @default(autoincrement())
+  title     String
+  slug      String   @unique
+  content   String
+  imageUrl  String?
+  authorId  Int
+  author    User     @relation(fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// -----------------------------------------
+// FORUM
+// -----------------------------------------
+model ForumCategory {
+  id          Int          @id @default(autoincrement())
+  name        String
+  description String?
+  icon        String?
+  order       Int          @default(0)
+  topics      ForumTopic[]
+}
+
+model ForumTopic {
+  id         Int           @id @default(autoincrement())
+  title      String
+  content    String
+  categoryId Int
+  category   ForumCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  authorId   Int
+  author     User          @relation(fields: [authorId], references: [id])
+  views      Int           @default(0)
+  isPinned   Boolean       @default(false)
+  isLocked   Boolean       @default(false)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  replies ForumReply[]
+}
+
+model ForumReply {
+  id        Int        @id @default(autoincrement())
+  content   String
+  topicId   Int
+  topic     ForumTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  authorId  Int
+  author    User       @relation(fields: [authorId], references: [id])
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+// -----------------------------------------
+// PUNISHMENTS (Bans/Mutes)
+// -----------------------------------------
+model Punishment {
+  id        Int       @id @default(autoincrement())
+  type      String // BAN, MUTE, WARN, KICK
+  player    String
+  operator  String
+  reason    String
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+}
+
+// -----------------------------------------
+// SUGGESTIONS (Módulo)
+// -----------------------------------------
+model Suggestion {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String
+  status    String   @default("PENDING") // PENDING, APPROVED, REJECTED, IMPLEMENTED
+  authorId  Int
+  author    User     @relation(fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  votes SuggestionVote[]
+}
+
+model SuggestionVote {
+  id           Int        @id @default(autoincrement())
+  suggestionId Int
+  suggestion   Suggestion @relation(fields: [suggestionId], references: [id], onDelete: Cascade)
+  userId       Int
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isUpvote     Boolean // true = upvote, false = downvote
+  createdAt    DateTime   @default(now())
+
+  @@unique([suggestionId, userId])
+}
+
+// -----------------------------------------
+// ACCESS TOKENS (Team/Admin)
+// -----------------------------------------
+model AccessToken {
+  id        Int      @id @default(autoincrement())
+  name      String
+  token     String   @unique
+  isValid   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// -----------------------------------------
+// SETTINGS (Configurações Gerais)
+// -----------------------------------------
+model Setting {
+  key       String   @id // ex: "WHEEL_COST", "WHEEL_COOLDOWN_MINUTES"
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+// -----------------------------------------
+// FORTUNE WHEEL (Roleta)
+// -----------------------------------------
+model FortuneWheelItem {
+  id        Int      @id @default(autoincrement())
+  name      String
+  type      String // CREDITS, COMMAND, EMPTY
+  value     String? // amount of credits or the command string
+  weight    Int      @default(10) // probability weight
+  color     String   @default("#000000") // hex color
+  icon      String? // lucide icon name
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  history FortuneWheelHistory[]
+}
+
+model FortuneWheelHistory {
+  id        Int              @id @default(autoincrement())
+  userId    Int
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemId    Int
+  item      FortuneWheelItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  createdAt DateTime         @default(now())
+}
+
+// -----------------------------------------
+// CHEST (Baú do Jogador)
+// -----------------------------------------
+model ChestItem {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name        String
+  description String?
+  imageUrl    String?
+  command     String? // Comando do produto ou da roleta
+  type        String // "PRODUCT", "CREDITS", "COMMAND"
+  amount      Float? // Usado caso seja um prémio de créditos (saldo)
+  source      String // "STORE", "FORTUNE_WHEEL", "ADMIN"
+
+  status     String    @default("PENDING") // PENDING, REDEEMED
+  redeemedAt DateTime?
+  redeemedBy String? // O nick do jogador que recebeu o item/comando (para onde foi resgatado/enviado)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// -----------------------------------------
+// DOWNLOADS
+// -----------------------------------------
+model DownloadItem {
+  id          Int      @id @default(autoincrement())
+  name        String
+  slug        String   @unique
+  description String
+  downloadUrl String
+  imageUrl    String? // Link para a imagem (ex: capa do modpack)
+  icon        String? // lucide icon name
+  downloads   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// -----------------------------------------
+// VIP TABLE (Tabela de VIPs)
+// -----------------------------------------
+model VipFeature {
+  id          Int     @id @default(autoincrement())
+  name        String
+  description String?
+  group       String  @default("Geral")
+  order       Int     @default(0)
+
+  productValues ProductVipFeatureValue[]
+}
+
+model ProductVipFeatureValue {
+  id        Int        @id @default(autoincrement())
+  productId Int
+  product   Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  featureId Int
+  feature   VipFeature @relation(fields: [featureId], references: [id], onDelete: Cascade)
+
+  type         String  @default("BOOLEAN") // BOOLEAN, TEXT
+  booleanValue Boolean @default(false)
+  textValue    String?
+
+  @@unique([productId, featureId])
+}
+
+// -----------------------------------------
+// VOTE SITES (Votos)
+// -----------------------------------------
+model VoteSite {
+  id        Int      @id @default(autoincrement())
+  name      String
+  url       String
+  imageUrl  String?
+  reward    String?
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// -----------------------------------------
+// CUSTOM PAGES (Páginas Personalizadas)
+// -----------------------------------------
+model CustomPage {
+  id        Int      @id @default(autoincrement())
+  title     String
+  slug      String   @unique
+  content   String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// -----------------------------------------
+// NAVIGATION (Menu de Navegação)
+// -----------------------------------------
+model NavigationItem {
+  id        Int      @id @default(autoincrement())
+  label     String
+  url       String
+  icon      String?
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  isSystem  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
