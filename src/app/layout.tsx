@@ -31,6 +31,9 @@ export default async function RootLayout({
   return (
     <html lang="pt-PT" className="dark">
       <body className="min-h-screen bg-[#08080c] text-gray-100 flex flex-col justify-between antialiased">
+        {settings.CUSTOM_CSS && (
+          <style id="custom-css-live" dangerouslySetInnerHTML={{ __html: settings.CUSTOM_CSS }} />
+        )}
         <Providers initialModules={modules} initialSettings={settings}>
           <NavBar initialNavItems={navItems} />
           <main className="flex-1 max-w-7xl 2xl:max-w-[90vw] w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">

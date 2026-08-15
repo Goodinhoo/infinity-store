@@ -3,7 +3,7 @@ import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
 import path from 'path'
 
 const globalForPrisma = globalThis as unknown as {
-  prisma_v2: PrismaClient | undefined
+  prisma_v8: PrismaClient | undefined
 }
 
 function createPrismaClient() {
@@ -13,6 +13,6 @@ function createPrismaClient() {
   return new PrismaClient({ adapter })
 }
 
-export const prisma: PrismaClient = globalForPrisma.prisma_v2 ?? createPrismaClient()
+export const prisma: PrismaClient = globalForPrisma.prisma_v8 ?? createPrismaClient()
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma_v2 = prisma
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma_v8 = prisma

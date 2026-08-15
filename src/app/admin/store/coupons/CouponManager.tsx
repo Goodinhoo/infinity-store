@@ -225,12 +225,12 @@ export default function CouponManager({
             </div>
           </div>
 
-          <div className="flex gap-2 pt-2">
-            <button type="submit" disabled={loading} className="flex-1 h-[44px] bg-black/50 border border-white/10 hover:border-neon-purple hover:bg-white/5 rounded-xl font-bold text-sm text-white transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-50">
-              {loading ? 'A processar...' : (editingItem ? 'Guardar Alterações' : 'Criar Cupão')}
-            </button>
-            <button type="button" onClick={resetForm} disabled={loading} className="px-6 h-[44px] bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 rounded-xl font-bold text-sm text-red-400 transition-all flex items-center justify-center shadow-sm disabled:opacity-50">
+          <div className="flex gap-3 pt-4 border-t border-white/10 mt-4">
+            <button type="button" onClick={resetForm} disabled={loading} className="flex-1 px-5 py-2.5 bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10 font-bold text-xs rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer select-none">
               Cancelar
+            </button>
+            <button type="submit" disabled={loading} className="flex-1 px-5 py-2.5 bg-neon-purple hover:bg-neon-purple/80 text-white font-bold text-xs rounded-xl transition-all shadow-[0_0_15px_rgba(168,85,247,0.3)] disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer select-none">
+              {loading ? 'A processar...' : (editingItem ? 'Guardar Cupão' : 'Criar Cupão')}
             </button>
           </div>
         </form>

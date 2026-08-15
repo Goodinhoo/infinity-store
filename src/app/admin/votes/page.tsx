@@ -228,10 +228,10 @@ export default function AdminVotes() {
         </div>
 
         <div className="flex gap-3 mt-6">
-          <button onClick={() => setIsModalOpen(false)} className="flex-1 py-2.5 rounded-xl bg-white/5 text-gray-300 font-bold text-sm hover:bg-white/10 transition-colors">
+          <button onClick={() => setIsModalOpen(false)} className="flex-1 px-5 py-2.5 bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10 font-bold text-xs rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer select-none">
             Cancelar
           </button>
-          <button onClick={handleSave} className="flex-1 py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-sm hover:bg-emerald-500 transition-colors shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+          <button onClick={handleSave} className="flex-1 px-5 py-2.5 bg-neon-purple hover:bg-neon-purple/80 text-white font-bold text-xs rounded-xl transition-all shadow-[0_0_15px_rgba(168,85,247,0.3)] disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer select-none">
             Guardar Site
           </button>
         </div>

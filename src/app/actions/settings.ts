@@ -16,7 +16,7 @@ export async function getDonationGoal() {
 }
 
 // Módulos
-export type ModuleKey = 'MODULE_FORTUNE_WHEEL' | 'MODULE_SUGGESTIONS' | 'MODULE_CASHBACK' | 'MODULE_LEADERBOARDS' | 'MODULE_CREATORS' | 'MODULE_DONATION_GOAL' | 'MODULE_LATEST_PURCHASES' | 'MODULE_DOWNLOADS' | 'MODULE_GIFTCARDS' | 'MODULE_VIPTABLE' | 'MODULE_VOTES'
+export type ModuleKey = 'MODULE_FORTUNE_WHEEL' | 'MODULE_SUGGESTIONS' | 'MODULE_CASHBACK' | 'MODULE_LEADERBOARDS' | 'MODULE_CREATORS' | 'MODULE_DONATION_GOAL' | 'MODULE_LATEST_PURCHASES' | 'MODULE_DOWNLOADS' | 'MODULE_GIFTCARDS' | 'MODULE_VIPTABLE' | 'MODULE_VOTES' | 'MODULE_STAFF' | 'MODULE_CHANGELOG' | 'MODULE_APPLICATIONS' | 'MODULE_SLIDERS'
 
 const defaultModules: Record<ModuleKey, boolean> = {
   MODULE_FORTUNE_WHEEL: true,
@@ -30,6 +30,10 @@ const defaultModules: Record<ModuleKey, boolean> = {
   MODULE_GIFTCARDS: true,
   MODULE_VIPTABLE: true,
   MODULE_VOTES: true,
+  MODULE_STAFF: true,
+  MODULE_CHANGELOG: true,
+  MODULE_APPLICATIONS: true,
+  MODULE_SLIDERS: true,
 }
 
 export async function getModules(): Promise<Record<ModuleKey, boolean>> {

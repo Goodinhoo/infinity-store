@@ -1,15 +1,17 @@
 'use client'
 
 import { useState } from 'react'
-import { updateUserRole, updateUserBalance, updateUserPassword, sendItemToChest } from '@/app/actions/admin-users'
-import { Shield, Coins, Key, Gift, Loader2 } from 'lucide-react'
+import { updateUserRole, updateUserBalance, updateUserPassword, sendItemToChest, updateUserPermissions } from '@/app/actions/admin-users'
+import { Shield, Coins, Key, Gift, Loader2, CheckSquare, Square, Lock } from 'lucide-react'
 import CustomSelect from '@/components/CustomSelect'
 import { Toast } from '@/lib/toast'
+import { PERMISSION_GROUPS, PermissionKey } from '@/lib/permissions'
 
 type UserProps = {
   id: number
   role: string
   balance: number
+  permissions?: string | null
 }
 
 type ProductProps = {
@@ -165,5 +167,145 @@ export function UserForms({ user, products }: { user: UserProps, products: Produ
           </form>
         </div>
       </div>
+  )
+}
+
+export function UserPermissionsForm({ user }: { user: UserProps }) {
+  const [selectedPerms, setSelectedPerms] = useState<string[]>(() => {
+    try {
+      return user.permissions ? JSON.parse(user.permissions) : []
+    } catch {
+      return []
+    }
+  })
+  const [savingPerms, setSavingPerms] = useState(false)
+
+  const isSuperAdmin = user.role === 'ADMIN'
+
+  function togglePerm(key: PermissionKey) {
+    if (selectedPerms.includes(key)) {
+      setSelectedPerms(selectedPerms.filter(p => p !== key))
+    } else {
+      setSelectedPerms([...selectedPerms, key])
+    }
+  }
+
+  function handleSelectAll() {
+    const allKeys = PERMISSION_GROUPS.flatMap(g => g.items.map(i => i.key))
+    if (selectedPerms.length === allKeys.length) {
+      setSelectedPerms([])
+    } else {
+      setSelectedPerms(allKeys)
+    }
+  }
+
+  async function handleSavePermissions() {
+    setSavingPerms(true)
+    try {
+      const res = await updateUserPermissions(user.id, selectedPerms)
+      if (res.success) {
+        Toast.fire({ icon: 'success', title: 'Permissões atualizadas com sucesso!' })
+      } else {
+        Toast.fire({ icon: 'error', title: res.error || 'Erro ao guardar permissões.' })
+      }
+    } catch {
+      Toast.fire({ icon: 'error', title: 'Erro ao guardar permissões.' })
+    } finally {
+      setSavingPerms(false)
+    }
+  }
+
+  return (
+    <div className="gale-panel p-6 border border-white/10 md:col-span-2 space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
+        <div>
+          <h3 className="text-base font-black uppercase text-white flex items-center gap-2">
+            <Lock size={18} className="text-neon-purple" /> Tabela de Permissões Granulares (Painel Admin)
+          </h3>
+          <p className="text-xs text-gray-400 mt-1">
+            Marca com o vistinho o que este utilizador pode ver e configurar no painel de Administração.
+          </p>
+        </div>
+
+        {isSuperAdmin ? (
+          <div className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold rounded-xl flex items-center gap-2">
+            <Shield size={16} /> Super Admin (Acesso Total Automático)
+          </div>
+        ) : (
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleSelectAll}
+              className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-gray-300 text-xs font-bold rounded-lg transition-colors"
+            >
+              {selectedPerms.length === PERMISSION_GROUPS.flatMap(g => g.items).length ? 'Desselecionar Todas' : 'Selecionar Todas'}
+            </button>
+            <button
+              type="button"
+              onClick={handleSavePermissions}
+              disabled={savingPerms}
+              className="px-5 py-2.5 bg-neon-purple hover:bg-neon-purple/80 text-white font-bold text-xs rounded-xl transition-all shadow-[0_0_15px_rgba(168,85,247,0.3)] disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer select-none"
+            >
+              {savingPerms ? 'A Guardar...' : 'Guardar Permissões'}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {isSuperAdmin ? (
+        <div className="p-4 bg-black/40 border border-white/5 rounded-xl text-xs text-gray-400">
+          Este utilizador possui o cargo de <b>Administrador (ADMIN)</b>. Como Super Admin, possui acesso total e irrestrito a todas as funcionalidades, não sendo necessário configurar permissões individuais.
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {PERMISSION_GROUPS.map((group) => (
+            <div key={group.category} className="space-y-3">
+              <h4 className="text-xs font-black text-neon-blue uppercase tracking-widest border-b border-white/5 pb-2">
+                {group.category}
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {group.items.map((item) => {
+                  const isChecked = selectedPerms.includes(item.key)
+                  return (
+                    <div
+                      key={item.key}
+                      onClick={() => togglePerm(item.key)}
+                      className={`p-3 rounded-xl border transition-all cursor-pointer flex items-start gap-3 select-none ${
+                        isChecked
+                          ? 'bg-neon-purple/10 border-neon-purple/40 text-white shadow-lg'
+                          : 'bg-black/30 border-white/5 text-gray-400 hover:border-white/20'
+                      }`}
+                    >
+                      <div className="mt-0.5 text-neon-purple">
+                        {isChecked ? <CheckSquare size={18} /> : <Square size={18} className="text-gray-600" />}
+                      </div>
+                      <div className="space-y-0.5">
+                        <p className={`text-xs font-bold ${isChecked ? 'text-white' : 'text-gray-300'}`}>
+                          {item.label}
+                        </p>
+                        <p className="text-[11px] text-gray-500 leading-tight">
+                          {item.description}
+                        </p>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
+
+          <div className="flex justify-end pt-4 border-t border-white/10">
+            <button
+              type="button"
+              onClick={handleSavePermissions}
+              disabled={savingPerms}
+              className="px-6 py-2.5 bg-neon-purple hover:bg-neon-purple/80 text-white font-bold text-xs rounded-xl transition-all shadow-[0_0_15px_rgba(168,85,247,0.3)] disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer select-none"
+            >
+              {savingPerms ? 'A Guardar...' : 'Guardar Permissões'}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }

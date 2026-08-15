@@ -232,13 +232,13 @@ export default function AdminSettings() {
         </div>
         
         {/* SAVE BUTTON */}
-        <div className="fixed bottom-0 right-6 z-50">
+        <div className="fixed bottom-6 right-8 z-50">
           <button 
             type="submit" 
             disabled={saving}
-            className="h-[54px] px-8 bg-neon-purple hover:bg-neon-purple/80 text-white rounded-2xl font-black uppercase tracking-widest text-sm transition-all flex items-center justify-center gap-3 shadow-[0_4px_20px_rgba(188,19,254,0.3)] hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 border border-white/20"
+            className="px-8 py-3 bg-neon-purple hover:bg-neon-purple/80 text-white font-bold text-sm rounded-xl transition-all shadow-[0_0_20px_rgba(168,85,247,0.4)] disabled:opacity-50 flex items-center justify-center gap-2.5 cursor-pointer select-none border border-white/20"
           >
-            {saving ? <Loader2 size={20} className="animate-spin" /> : <Save size={20} />} 
+            {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />} 
             {saving ? 'A Guardar...' : 'Guardar Alterações'}
           </button>
         </div>

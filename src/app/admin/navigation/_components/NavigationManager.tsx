@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { createNavigationItem, updateNavigationItem, deleteNavigationItem, reorderNavigationItems } from '@/app/actions/admin-navigation'
 import { ArrowUp, ArrowDown, Trash2, Plus, Save, Eye, EyeOff } from 'lucide-react'
-import * as LucideIcons from 'lucide-react'
+import DynamicIcon from '@/components/DynamicIcon'
 import Swal from 'sweetalert2'
 
 type NavItem = {
@@ -22,13 +22,8 @@ type CustomPage = {
   slug: string
 }
 
-import { ElementType } from 'react'
-
 const IconComponent = ({ name, className }: { name: string | null, className?: string }) => {
-  if (!name) return null
-  const Icon = LucideIcons[name as keyof typeof LucideIcons] as ElementType
-  if (!Icon) return <LucideIcons.HelpCircle className={className} />
-  return <Icon className={className} />
+  return <DynamicIcon name={name} className={className} size={20} />
 }
 
 const urlToModule: Record<string, string> = {
@@ -37,6 +32,9 @@ const urlToModule: Record<string, string> = {
   '/downloads': 'MODULE_DOWNLOADS',
   '/votos': 'MODULE_VOTES',
   '/roleta': 'MODULE_FORTUNE_WHEEL',
+  '/staff': 'MODULE_STAFF',
+  '/changelog': 'MODULE_CHANGELOG',
+  '/candidaturas': 'MODULE_APPLICATIONS',
 }
 
 export default function NavigationManager({ 

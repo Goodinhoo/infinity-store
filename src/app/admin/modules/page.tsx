@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { getModules, toggleModule, ModuleKey } from '@/app/actions/settings'
-import { CircleDot, Lightbulb, Banknote, Trophy, Users, ToggleLeft, ToggleRight, Blocks, Target, ShoppingBag, DownloadCloud, Gift, Table, MousePointerClick } from 'lucide-react'
+import { CircleDot, Lightbulb, Banknote, Trophy, Users, ToggleLeft, ToggleRight, Blocks, Target, ShoppingBag, DownloadCloud, Gift, Table, MousePointerClick, ShieldCheck, GitCommit, ClipboardList } from 'lucide-react'
 import { Toast } from '@/lib/toast'
 import Link from 'next/link'
 
@@ -19,6 +19,10 @@ export default function AdminModules() {
     MODULE_GIFTCARDS: true,
     MODULE_VIPTABLE: true,
     MODULE_VOTES: true,
+    MODULE_STAFF: true,
+    MODULE_CHANGELOG: true,
+    MODULE_APPLICATIONS: true,
+    MODULE_SLIDERS: true,
   })
   const [loading, setLoading] = useState(true)
 
@@ -303,6 +307,98 @@ export default function AdminModules() {
             >
               {modules.MODULE_VOTES ? <ToggleRight size={18} /> : <ToggleLeft size={18} />}
               {modules.MODULE_VOTES ? 'Ativado' : 'Desativado'}
+            </button>
+          </Link>
+
+          {/* EQUIPA & STAFF */}
+          <Link href="/admin/staff" className="block bg-[#050508] border border-white/10 rounded-xl p-4 flex flex-col justify-between hover:border-neon-purple/50 transition-colors cursor-pointer group">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-neon-purple/20 to-indigo-600/20 border border-white/10 flex items-center justify-center text-neon-purple">
+                  <ShieldCheck size={20} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white group-hover:text-neon-purple transition-colors">Equipa & Staff</h3>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5">Comunidade</p>
+                </div>
+              </div>
+            </div>
+            <p className="text-xs text-gray-400 mb-6">Página pública (/staff) exibindo os cargos e cabeças 3D do Minecraft da tua equipa.</p>
+            <button 
+              onClick={(e) => handleToggleModule(e, 'MODULE_STAFF')}
+              className={`w-full py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm font-bold transition-all ${modules.MODULE_STAFF ? 'bg-neon-purple/10 text-neon-purple border border-neon-purple/30 hover:bg-neon-purple/20' : 'bg-white/5 text-gray-400 border border-transparent hover:bg-white/10'}`}
+            >
+              {modules.MODULE_STAFF ? <ToggleRight size={18} /> : <ToggleLeft size={18} />}
+              {modules.MODULE_STAFF ? 'Ativado' : 'Desativado'}
+            </button>
+          </Link>
+
+          {/* CHANGELOGS */}
+          <Link href="/admin/changelogs" className="block bg-[#050508] border border-white/10 rounded-xl p-4 flex flex-col justify-between hover:border-neon-purple/50 transition-colors cursor-pointer group">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-neon-blue/20 to-cyan-600/20 border border-white/10 flex items-center justify-center text-neon-blue">
+                  <GitCommit size={20} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white group-hover:text-neon-blue transition-colors">Notas de Atualização</h3>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5">Changelog</p>
+                </div>
+              </div>
+            </div>
+            <p className="text-xs text-gray-400 mb-6">Feed de notas de versão e atualizações do servidor (/changelog).</p>
+            <button 
+              onClick={(e) => handleToggleModule(e, 'MODULE_CHANGELOG')}
+              className={`w-full py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm font-bold transition-all ${modules.MODULE_CHANGELOG ? 'bg-neon-purple/10 text-neon-purple border border-neon-purple/30 hover:bg-neon-purple/20' : 'bg-white/5 text-gray-400 border border-transparent hover:bg-white/10'}`}
+            >
+              {modules.MODULE_CHANGELOG ? <ToggleRight size={18} /> : <ToggleLeft size={18} />}
+              {modules.MODULE_CHANGELOG ? 'Ativado' : 'Desativado'}
+            </button>
+          </Link>
+
+          {/* CANDIDATURAS */}
+          <Link href="/admin/candidaturas" className="block bg-[#050508] border border-white/10 rounded-xl p-4 flex flex-col justify-between hover:border-neon-purple/50 transition-colors cursor-pointer group">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-600/20 border border-white/10 flex items-center justify-center text-emerald-400">
+                  <ClipboardList size={20} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">Candidaturas</h3>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5">Recrutamento</p>
+                </div>
+              </div>
+            </div>
+            <p className="text-xs text-gray-400 mb-6">Construtor de formulários e análise de respostas de jogadores para a equipa.</p>
+            <button 
+              onClick={(e) => handleToggleModule(e, 'MODULE_APPLICATIONS')}
+              className={`w-full py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm font-bold transition-all ${modules.MODULE_APPLICATIONS ? 'bg-neon-purple/10 text-neon-purple border border-neon-purple/30 hover:bg-neon-purple/20' : 'bg-white/5 text-gray-400 border border-transparent hover:bg-white/10'}`}
+            >
+              {modules.MODULE_APPLICATIONS ? <ToggleRight size={18} /> : <ToggleLeft size={18} />}
+              {modules.MODULE_APPLICATIONS ? 'Ativado' : 'Desativado'}
+            </button>
+          </Link>
+
+          {/* SLIDERS DA HOMEPAGE */}
+          <Link href="/admin/sliders" className="block bg-[#050508] border border-white/10 rounded-xl p-4 flex flex-col justify-between hover:border-neon-purple/50 transition-colors cursor-pointer group">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-600/20 border border-white/10 flex items-center justify-center text-neon-pink">
+                  <Blocks size={20} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white group-hover:text-neon-pink transition-colors">Sliders da Homepage</h3>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5">Banners Rotativos</p>
+                </div>
+              </div>
+            </div>
+            <p className="text-xs text-gray-400 mb-6">Substitui o hero estático por um carrossel dinâmico com múltiplos banners promocionais.</p>
+            <button 
+              onClick={(e) => handleToggleModule(e, 'MODULE_SLIDERS')}
+              className={`w-full py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm font-bold transition-all ${modules.MODULE_SLIDERS ? 'bg-neon-purple/10 text-neon-purple border border-neon-purple/30 hover:bg-neon-purple/20' : 'bg-white/5 text-gray-400 border border-transparent hover:bg-white/10'}`}
+            >
+              {modules.MODULE_SLIDERS ? <ToggleRight size={18} /> : <ToggleLeft size={18} />}
+              {modules.MODULE_SLIDERS ? 'Ativado' : 'Desativado'}
             </button>
           </Link>
 

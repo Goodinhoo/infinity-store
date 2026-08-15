@@ -16,6 +16,7 @@ export type GlobalSettingsKeys =
   | 'STORE_LOGO_URL'
   | 'STORE_FAVICON_URL'
   | 'STORE_BANNER_URL'
+  | 'CUSTOM_CSS'
 
 export type GlobalSettings = Record<GlobalSettingsKeys, string>
 
@@ -28,7 +29,8 @@ const defaultSettings: GlobalSettings = {
   DISCORD_URL: 'discord.gg/infinitynexus',
   STORE_LOGO_URL: '/logo.png',
   STORE_FAVICON_URL: '/favicon.ico',
-  STORE_BANNER_URL: '/images/banner.png'
+  STORE_BANNER_URL: '/images/banner.png',
+  CUSTOM_CSS: '/* Escreve aqui o teu CSS personalizado */\n\n'
 }
 
 export async function getGlobalSettings(): Promise<GlobalSettings> {

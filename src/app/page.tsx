@@ -7,6 +7,8 @@ import { getGlobalSettings } from '@/app/actions/global-settings'
 import ServerIPCard from '@/components/ServerIPCard'
 import { getTopDonators, getLeaderboardPrizes } from '@/app/actions/leaderboards'
 import Image from 'next/image'
+import HeroSlider from '@/components/HeroSlider'
+import { getActiveSlidersFrontend } from '@/app/actions/admin-sliders'
 
 export default async function HomePage() {
   const featuredProducts = await prisma.product.findMany({
@@ -33,6 +35,9 @@ export default async function HomePage() {
   const isLeaderboardActive = modules.MODULE_LEADERBOARDS
   const isGoalActive = modules.MODULE_DONATION_GOAL !== false
   const isLatestPurchasesActive = modules.MODULE_LATEST_PURCHASES !== false
+  const isSlidersActive = modules.MODULE_SLIDERS !== false
+
+  const activeSliders = isSlidersActive ? await getActiveSlidersFrontend() : []
   
   let topDonators: { rank: number; player: string; total: number }[] = []
   let leaderboardPrizes: { top1: string; top2: string; top3: string } | null = null
@@ -88,56 +93,60 @@ export default async function HomePage() {
   return (
     <div className="flex flex-col gap-12 w-full max-w-[2000px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
       
-      {/* Hero Section */}
-      <section className="relative w-full h-[400px] sm:h-[550px] rounded-3xl overflow-hidden shadow-2xl flex items-center justify-between px-8 sm:px-16 border border-white/10 group">
-        <div className="absolute inset-0 bg-black/60 z-10" />
-        <div className="absolute inset-0 bg-gradient-to-r from-neon-purple/20 to-neon-blue/20 z-10 mix-blend-overlay" />
-        
-        <Image
-          src={settings.STORE_BANNER_URL}
-          alt="Server Background"
-          fill
-          className="object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-in-out"
-          priority
-        />
-
-        <div className="relative z-20 flex flex-col gap-4 max-w-2xl animate-fade-in">
-          <div className="mb-6 sm:mb-20 inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md w-fit animate-float">
-            <Sparkles size={16} className="text-neon-blue" />
-            <span className="text-xs font-bold uppercase tracking-wider text-white">Temporada 1 JÁ COMEÇOU</span>
-          </div>
+      {/* Hero Section (Sliders or Static Hero) */}
+      {isSlidersActive && activeSliders.length > 0 ? (
+        <HeroSlider sliders={activeSliders} discordUrl={settings.DISCORD_URL} />
+      ) : (
+        <section className="relative w-full h-[400px] sm:h-[550px] rounded-3xl overflow-hidden shadow-2xl flex items-center justify-between px-8 sm:px-16 border border-white/10 group">
+          <div className="absolute inset-0 bg-black/60 z-10" />
+          <div className="absolute inset-0 bg-gradient-to-r from-neon-purple/20 to-neon-blue/20 z-10 mix-blend-overlay" />
           
-          <h1 className="text-4xl sm:text-6xl font-black text-white leading-[1.1] tracking-tight">
-            Bem-vindo à <br/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-purple to-neon-blue drop-shadow-[0_0_15px_rgba(188,19,254,0.4)]">{settings.STORE_NAME}</span>
-          </h1>
-          
-          <p className="text-sm sm:text-base md:text-lg text-gray-300 max-w-2xl mx-auto mb-10 leading-relaxed opacity-90 drop-shadow-md">
-            {settings.STORE_BANNER_DESC}
-          </p>
+          <Image
+            src={settings.STORE_BANNER_URL}
+            alt="Server Background"
+            fill
+            className="object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-in-out"
+            priority
+          />
 
-          <div className="flex flex-wrap gap-4 pt-4">
-            <Link
-              href="/loja"
-              className="px-8 py-4 rounded-xl font-bold text-sm bg-gradient-to-r from-neon-purple to-neon-blue text-white hover:scale-105 transition-all flex items-center gap-2 animate-glow-pulse"
-            >
-              <ShoppingBag size={18} />
-              Explorar a Loja
-            </Link>
-            <a
-              href={settings.DISCORD_URL.startsWith('http') ? settings.DISCORD_URL : `https://${settings.DISCORD_URL}`}
-              target="_blank"
-              rel="noreferrer"
-              className="px-8 py-4 rounded-xl font-bold text-sm bg-white/10 hover:bg-white/20 text-white backdrop-blur-md border border-white/20 hover:scale-105 transition-all flex items-center gap-2"
-            >
-              Comunidade Discord
-            </a>
+          <div className="relative z-20 flex flex-col gap-4 max-w-2xl animate-fade-in">
+            <div className="mb-6 sm:mb-20 inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md w-fit animate-float">
+              <Sparkles size={16} className="text-neon-blue" />
+              <span className="text-xs font-bold uppercase tracking-wider text-white">Temporada 1 JÁ COMEÇOU</span>
+            </div>
+            
+            <h1 className="text-4xl sm:text-6xl font-black text-white leading-[1.1] tracking-tight">
+              Bem-vindo à <br/>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-purple to-neon-blue drop-shadow-[0_0_15px_rgba(188,19,254,0.4)]">{settings.STORE_NAME}</span>
+            </h1>
+            
+            <p className="text-sm sm:text-base md:text-lg text-gray-300 max-w-2xl mx-auto mb-10 leading-relaxed opacity-90 drop-shadow-md">
+              {settings.STORE_BANNER_DESC}
+            </p>
+
+            <div className="flex flex-wrap gap-4 pt-4">
+              <Link
+                href="/loja"
+                className="px-8 py-4 rounded-xl font-bold text-sm bg-gradient-to-r from-neon-purple to-neon-blue text-white hover:scale-105 transition-all flex items-center gap-2 animate-glow-pulse"
+              >
+                <ShoppingBag size={18} />
+                Explorar a Loja
+              </Link>
+              <a
+                href={settings.DISCORD_URL.startsWith('http') ? settings.DISCORD_URL : `https://${settings.DISCORD_URL}`}
+                target="_blank"
+                rel="noreferrer"
+                className="px-8 py-4 rounded-xl font-bold text-sm bg-white/10 hover:bg-white/20 text-white backdrop-blur-md border border-white/20 hover:scale-105 transition-all flex items-center gap-2"
+              >
+                Comunidade Discord
+              </a>
+            </div>
           </div>
-        </div>
 
-        {/* Server IP Card */}
-        <ServerIPCard ip={settings.SERVER_IP} versions={settings.SERVER_VERSIONS} />
-      </section>
+          {/* Server IP Card */}
+          <ServerIPCard ip={settings.SERVER_IP} versions={settings.SERVER_VERSIONS} />
+        </section>
+      )}
 
       {/* Sessão Dupla: Conteúdo Principal + Sidebar */}
       <section className="flex flex-col lg:flex-row gap-6">

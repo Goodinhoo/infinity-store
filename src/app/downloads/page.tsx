@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { getDownloads, incrementDownload } from '@/app/actions/downloads'
 import { getModules } from '@/app/actions/settings'
 import { DownloadCloud, ExternalLink, Package, ShieldAlert } from 'lucide-react'
+import DynamicIcon from '@/components/DynamicIcon'
 
 type DownloadItem = {
   id: number
@@ -11,6 +12,7 @@ type DownloadItem = {
   description: string
   downloadUrl: string
   imageUrl: string | null
+  icon?: string | null
   downloads: number
 }
 
@@ -97,7 +99,7 @@ export default function DownloadsPage() {
               
               <div className="flex justify-between items-start">
                 <div className="p-3 bg-white/5 rounded-xl border border-white/10 group-hover:bg-neon-blue/10 group-hover:border-neon-blue/30 transition-colors">
-                  <Package className="text-gray-400 group-hover:text-neon-blue transition-colors" size={24} />
+                  <DynamicIcon name={item.icon} fallback={Package} className="text-gray-400 group-hover:text-neon-blue transition-colors" size={24} />
                 </div>
                 <div className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold text-gray-400 uppercase tracking-widest border border-white/10">
                   {item.downloads} downloads

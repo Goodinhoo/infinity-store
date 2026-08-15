@@ -19,13 +19,10 @@ export default async function AdminProductsPage() {
     )
   }
 
-  const [products, categories] = await Promise.all([
-    prisma.product.findMany({
-      include: { category: true },
-      orderBy: { createdAt: 'desc' }
-    }),
-    prisma.category.findMany({ orderBy: { order: 'asc' } })
-  ])
+  const products = await prisma.product.findMany({
+    include: { category: true, server: true },
+    orderBy: { createdAt: 'desc' }
+  })
 
   return (
     <div className="flex flex-col gap-6 animate-fade-in">
@@ -34,7 +31,7 @@ export default async function AdminProductsPage() {
         <p className="text-gray-400 text-sm mt-1">Adiciona e remove produtos do catálogo</p>
       </div>
 
-      <ProductManager products={products} categories={categories} />
+      <ProductManager products={products} />
     </div>
   )
 }

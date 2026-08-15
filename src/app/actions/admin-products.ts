@@ -19,6 +19,8 @@ export async function createProduct(formData: FormData) {
   
   const discountRaw = formData.get('discountPercentage') as string
   const discountPercentage = discountRaw ? parseInt(discountRaw) : null
+  const serverIdRaw = formData.get('serverId') as string
+  const serverId = serverIdRaw ? parseInt(serverIdRaw) : null
 
   if (!name || !description || isNaN(price) || isNaN(categoryId)) {
     return { success: false, error: 'Preenche todos os campos obrigatórios.' }
@@ -31,6 +33,7 @@ export async function createProduct(formData: FormData) {
         description, 
         price, 
         categoryId, 
+        serverId,
         imageUrl, 
         isFeatured, 
         isHidden,
@@ -61,6 +64,8 @@ export async function updateProduct(id: number, formData: FormData) {
   
   const discountRaw = formData.get('discountPercentage') as string
   const discountPercentage = discountRaw ? parseInt(discountRaw) : null
+  const serverIdRaw = formData.get('serverId') as string
+  const serverId = serverIdRaw ? parseInt(serverIdRaw) : null
 
   if (!name || !description || isNaN(price) || isNaN(categoryId)) {
     return { success: false, error: 'Preenche todos os campos obrigatórios.' }
@@ -74,6 +79,7 @@ export async function updateProduct(id: number, formData: FormData) {
         description, 
         price, 
         categoryId, 
+        serverId,
         imageUrl, 
         isFeatured, 
         isHidden,

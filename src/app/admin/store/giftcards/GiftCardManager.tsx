@@ -108,10 +108,10 @@ export default function GiftCardManager({ initialGiftCards }: { initialGiftCards
           <button 
             type="submit" 
             disabled={loading}
-            className="w-full sm:w-auto h-[48px] px-6 rounded-xl bg-neon-purple text-white font-bold hover:bg-neon-purple/80 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full sm:w-auto px-6 py-2.5 bg-neon-purple hover:bg-neon-purple/80 text-white font-bold text-xs rounded-xl transition-all shadow-[0_0_15px_rgba(168,85,247,0.3)] disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer select-none"
           >
             <Plus size={18} />
-            Gerar
+            Gerar Cartões
           </button>
         </form>
       </div>

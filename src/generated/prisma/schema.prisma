@@ -19,6 +19,7 @@ model User {
   password      String?
   image         String? // NextAuth uses this
   role          String    @default("USER") // USER, ADMIN, MODERATOR
+  permissions   String? // JSON array of permission keys (ex: ["MANAGE_TICKETS","MANAGE_BANS"])
   balance       Float     @default(0.0) // Virtual Coins
   avatar        String?
   createdAt     DateTime  @default(now())
@@ -38,6 +39,50 @@ model User {
   suggestions       Suggestion[]
   suggestionVotes   SuggestionVote[]
   creatorCodes      CreatorCode[]
+  formSubmissions   FormSubmission[]
+  auditLogs         AuditLog[]
+}
+
+// -----------------------------------------
+// SERVIDORES MINECRAFT & RCON
+// -----------------------------------------
+model MinecraftServer {
+  id           Int      @id @default(autoincrement())
+  name         String // Ex: "Survival 1.20", "RankUP"
+  ip           String // IP ou hostname (ex: "185.123.45.67")
+  rconPort     Int      @default(25575)
+  rconPassword String
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  products Product[]
+}
+
+// -----------------------------------------
+// REGISTOS DE AUDITORIA & LOGS RCON
+// -----------------------------------------
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  username  String?
+  action    String // Ex: "USER_ROLE_UPDATED", "COINS_SENT", "SETTINGS_CHANGED"
+  details   String // Descricao detalhada da acao
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+model RconLog {
+  id         Int      @id @default(autoincrement())
+  orderId    Int?
+  serverName String
+  player     String
+  command    String
+  status     String // "SUCCESS" ou "FAILED"
+  response   String?
+  createdAt  DateTime @default(now())
 }
 
 model Account {
@@ -94,20 +139,22 @@ model Category {
 }
 
 model Product {
-  id                 Int      @id @default(autoincrement())
+  id                 Int              @id @default(autoincrement())
   name               String
   description        String
   price              Float
   imageUrl           String?
   categoryId         Int
-  category           Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  isFeatured         Boolean  @default(false)
-  isHidden           Boolean  @default(false)
-  showInVipTable     Boolean  @default(false)
+  category           Category         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  serverId           Int?
+  server             MinecraftServer? @relation(fields: [serverId], references: [id], onDelete: SetNull)
+  isFeatured         Boolean          @default(false)
+  isHidden           Boolean          @default(false)
+  showInVipTable     Boolean          @default(false)
   command            String?
   discountPercentage Int?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
 
   orderItems       OrderItem[]
   coupons          Coupon[]
@@ -461,4 +508,87 @@ model NavigationItem {
   isSystem  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// -----------------------------------------
+// CHANGELOGS (Notas de Atualização)
+// -----------------------------------------
+model Changelog {
+  id        Int      @id @default(autoincrement())
+  title     String
+  version   String // Ex: "v1.2.0"
+  content   String
+  type      String   @default("UPDATE") // NEW, IMPROVEMENT, FIX, REMOVED, UPDATE
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// -----------------------------------------
+// STAFF MEMBERS (Equipa do Servidor)
+// -----------------------------------------
+model StaffMember {
+  id          Int      @id @default(autoincrement())
+  username    String // Minecraft Nickname
+  roleGroup   String // Ex: "Fundadores", "Administradores", "Moderadores", "Ajudantes"
+  customTitle String? // Ex: "Lead Developer", "Dono", "Community Manager"
+  discord     String? // Ex: "User#1234"
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// -----------------------------------------
+// CUSTOM FORMS / CANDIDATURAS
+// -----------------------------------------
+model CustomForm {
+  id          Int      @id @default(autoincrement())
+  title       String // Ex: "Candidatura a Helper"
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  questions   FormQuestion[]
+  submissions FormSubmission[]
+}
+
+model FormQuestion {
+  id         Int        @id @default(autoincrement())
+  formId     Int
+  form       CustomForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+  question   String // Texto da pergunta
+  type       String     @default("TEXT") // TEXT, TEXTAREA, SELECT
+  options    String? // JSON array or comma-separated options if SELECT
+  isRequired Boolean    @default(true)
+  order      Int        @default(0)
+}
+
+model FormSubmission {
+  id        Int        @id @default(autoincrement())
+  formId    Int
+  form      CustomForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+  userId    Int?
+  user      User?      @relation(fields: [userId], references: [id])
+  player    String // Nickname do jogador
+  answers   String // JSON storing answers
+  status    String     @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+// -----------------------------------------
+// HERO SLIDERS
+// -----------------------------------------
+model HeroSlider {
+  id         Int      @id @default(autoincrement())
+  title      String
+  subtitle   String?
+  badge      String? // Ex: "PROMOÇÃO 20%", "NOVA TEMPORADA"
+  imageUrl   String // Imagem de fundo do slide
+  buttonText String? // Ex: "Ver Pacotes VIP", "Comprar Agora"
+  buttonLink String? // Ex: "/loja", "/vips"
+  order      Int      @default(0)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }

@@ -6,9 +6,8 @@ import Image from 'next/image'
 import CartButton from './CartButton'
 import { useState } from 'react'
 import { User, Menu, X } from 'lucide-react'
-import * as LucideIcons from 'lucide-react'
+import { resolveLucideIcon } from '@/components/DynamicIcon'
 import { useModules, useGlobalSettings } from './Providers'
-import { ElementType } from 'react'
 
 type NavItem = {
   id: number
@@ -32,6 +31,9 @@ export default function NavBar({ initialNavItems }: { initialNavItems: NavItem[]
     '/downloads': modules.MODULE_DOWNLOADS,
     '/votos': modules.MODULE_VOTES,
     '/roleta': modules.MODULE_FORTUNE_WHEEL,
+    '/staff': modules.MODULE_STAFF,
+    '/changelog': modules.MODULE_CHANGELOG,
+    '/candidaturas': modules.MODULE_APPLICATIONS,
   }
 
   const navLinks = initialNavItems.filter(item => {
@@ -41,7 +43,7 @@ export default function NavBar({ initialNavItems }: { initialNavItems: NavItem[]
   }).map(item => ({
     href: item.url,
     label: item.label,
-    icon: item.icon ? LucideIcons[item.icon as keyof typeof LucideIcons] as ElementType : null
+    icon: resolveLucideIcon(item.icon)
   }))
 
   return (

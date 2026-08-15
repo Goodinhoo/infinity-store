@@ -154,6 +154,13 @@ export default function AdminRoletaPage() {
                 </div>
               </div>
               <div>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="text-xs font-bold text-gray-400 uppercase">Ícone (Lucide-react)</label>
+                  <a href="https://lucide.dev/icons" target="_blank" rel="noreferrer" className="text-neon-purple hover:underline text-xs font-bold lowercase">ver lista</a>
+                </div>
+                <input type="text" className="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-neon-purple font-mono text-xs" value={formData.icon} onChange={e => setFormData({ ...formData, icon: e.target.value })} placeholder="Ex: Gift, Coins, Trophy..." />
+              </div>
+              <div>
                 <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Tipo</label>
                 <CustomSelect
                   value={formData.type}

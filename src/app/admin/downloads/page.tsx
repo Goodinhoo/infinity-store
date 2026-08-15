@@ -301,6 +301,18 @@ export default function DownloadsAdminPage() {
               </div>
               
               <div>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="text-sm font-bold text-gray-400">Ícone (Lucide-react)</label>
+                  <a href="https://lucide.dev/icons" target="_blank" rel="noreferrer" className="text-neon-purple hover:underline text-xs font-bold lowercase">ver lista</a>
+                </div>
+                <input 
+                  type="text" value={icon} onChange={e => setIcon(e.target.value)}
+                  className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-white focus:border-neon-blue font-mono text-xs"
+                  placeholder="Ex: DownloadCloud, Package, Cpu, Shield..."
+                />
+              </div>
+
+              <div>
                 <label className="text-sm font-bold text-gray-400 mb-2 block">Descrição Breve</label>
                 <input 
                   type="text" value={description} onChange={e => setDescription(e.target.value)}

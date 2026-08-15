@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import ProductCard from '@/components/ProductCard'
 import { ShoppingBag, Zap, Layers } from 'lucide-react'
+import DynamicIcon from '@/components/DynamicIcon'
 
 export const metadata = {
   title: 'Loja Oficial - Infinity Nexus',
@@ -56,7 +57,7 @@ export default async function StorePage() {
               href={`/loja/${cat.slug}`}
               className="px-4 py-2 rounded-xl text-xs font-bold bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10 transition-all flex items-center gap-1.5"
             >
-              <Zap size={12} className="text-neon-purple" />
+              <DynamicIcon name={cat.icon} fallback={Zap} size={14} className="text-neon-purple" />
               {cat.name} ({cat.products.length})
             </Link>
           ))}

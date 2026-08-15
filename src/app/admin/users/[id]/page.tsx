@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, User as UserIcon, ShoppingCart } from 'lucide-react'
-import { UserForms } from './UserForms'
+import { UserForms, UserPermissionsForm } from './UserForms'
 
 export const metadata = {
   title: 'Gerir Utilizador - Admin Infinity Nexus',
@@ -94,6 +94,9 @@ export default async function AdminUserPage({ params }: { params: Promise<{ id: 
           </div>
         )}
       </div>
+
+      {/* Tabela de Permissões no fundo da página */}
+      <UserPermissionsForm user={user} />
     </div>
   )
 }

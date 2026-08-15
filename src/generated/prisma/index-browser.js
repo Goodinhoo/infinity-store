@@ -126,10 +126,43 @@ exports.Prisma.UserScalarFieldEnum = {
   password: 'password',
   image: 'image',
   role: 'role',
+  permissions: 'permissions',
   balance: 'balance',
   avatar: 'avatar',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MinecraftServerScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  ip: 'ip',
+  rconPort: 'rconPort',
+  rconPassword: 'rconPassword',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.AuditLogScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  username: 'username',
+  action: 'action',
+  details: 'details',
+  ipAddress: 'ipAddress',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.RconLogScalarFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  serverName: 'serverName',
+  player: 'player',
+  command: 'command',
+  status: 'status',
+  response: 'response',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.AccountScalarFieldEnum = {
@@ -179,6 +212,7 @@ exports.Prisma.ProductScalarFieldEnum = {
   price: 'price',
   imageUrl: 'imageUrl',
   categoryId: 'categoryId',
+  serverId: 'serverId',
   isFeatured: 'isFeatured',
   isHidden: 'isHidden',
   showInVipTable: 'showInVipTable',
@@ -445,6 +479,71 @@ exports.Prisma.NavigationItemScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.ChangelogScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  version: 'version',
+  content: 'content',
+  type: 'type',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.StaffMemberScalarFieldEnum = {
+  id: 'id',
+  username: 'username',
+  roleGroup: 'roleGroup',
+  customTitle: 'customTitle',
+  discord: 'discord',
+  order: 'order',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CustomFormScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  description: 'description',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.FormQuestionScalarFieldEnum = {
+  id: 'id',
+  formId: 'formId',
+  question: 'question',
+  type: 'type',
+  options: 'options',
+  isRequired: 'isRequired',
+  order: 'order'
+};
+
+exports.Prisma.FormSubmissionScalarFieldEnum = {
+  id: 'id',
+  formId: 'formId',
+  userId: 'userId',
+  player: 'player',
+  answers: 'answers',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.HeroSliderScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  subtitle: 'subtitle',
+  badge: 'badge',
+  imageUrl: 'imageUrl',
+  buttonText: 'buttonText',
+  buttonLink: 'buttonLink',
+  order: 'order',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -458,6 +557,9 @@ exports.Prisma.NullsOrder = {
 
 exports.Prisma.ModelName = {
   User: 'User',
+  MinecraftServer: 'MinecraftServer',
+  AuditLog: 'AuditLog',
+  RconLog: 'RconLog',
   Account: 'Account',
   Session: 'Session',
   VerificationToken: 'VerificationToken',
@@ -487,7 +589,13 @@ exports.Prisma.ModelName = {
   ProductVipFeatureValue: 'ProductVipFeatureValue',
   VoteSite: 'VoteSite',
   CustomPage: 'CustomPage',
-  NavigationItem: 'NavigationItem'
+  NavigationItem: 'NavigationItem',
+  Changelog: 'Changelog',
+  StaffMember: 'StaffMember',
+  CustomForm: 'CustomForm',
+  FormQuestion: 'FormQuestion',
+  FormSubmission: 'FormSubmission',
+  HeroSlider: 'HeroSlider'
 };
 
 /**

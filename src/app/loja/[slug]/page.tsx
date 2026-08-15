@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import ProductCard from '@/components/ProductCard'
 import { ArrowLeft, Zap, Layers } from 'lucide-react'
+import DynamicIcon from '@/components/DynamicIcon'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -46,7 +47,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
       <header className="gale-panel p-8 border border-white/10 bg-gradient-to-r from-[#0d0d18] via-[#150a25] to-[#08080c] flex flex-col gap-4">
         <div className="flex items-center gap-3">
           <div className="p-3 rounded-2xl bg-neon-purple/10 border border-neon-purple/30 text-neon-purple">
-            <Zap size={28} />
+            <DynamicIcon name={category.icon} fallback={Zap} size={28} />
           </div>
           <div>
             <h1 className="text-3xl font-black text-white">{category.name}</h1>
@@ -79,7 +80,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
                   : 'bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10'
               }`}
             >
-              <Zap size={12} className={cat.slug === slug ? 'text-white' : 'text-neon-purple'} />
+              <DynamicIcon name={cat.icon} fallback={Zap} size={14} className={cat.slug === slug ? 'text-white' : 'text-neon-purple'} />
               {cat.name}
             </Link>
           ))}

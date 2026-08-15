@@ -1,12 +1,10 @@
 'use client'
 
-import { useState } from 'react'
-import { PlusCircle, Edit, Layers, EyeOff, Eye } from 'lucide-react'
-import { createCategory, updateCategory, deleteCategory } from '@/app/actions/admin-categories'
+import Link from 'next/link'
+import { PlusCircle, Edit, Layers, EyeOff, Trash2 } from 'lucide-react'
+import { deleteCategory } from '@/app/actions/admin-categories'
 import { Toast } from '@/lib/toast'
-import DeleteButton from '@/components/DeleteButton'
-import Modal from '@/components/Modal'
-import RichTextEditor from '@/components/RichTextEditor'
+import Swal from 'sweetalert2'
 
 type CategoryProps = {
   id: number
@@ -21,62 +19,28 @@ type CategoryProps = {
 }
 
 export default function CategoryManager({ categories }: { categories: CategoryProps[] }) {
-  const [loading, setLoading] = useState(false)
-  const [editingItem, setEditingItem] = useState<CategoryProps | null>(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [descriptionContent, setDescriptionContent] = useState('')
+  const handleDelete = async (id: number, name: string) => {
+    const result = await Swal.fire({
+      title: 'Tem a certeza?',
+      text: `Deseja eliminar a categoria "${name}"?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#374151',
+      confirmButtonText: 'Sim, eliminar',
+      cancelButtonText: 'Cancelar',
+      background: '#0d0d14',
+      color: '#fff'
+    })
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setLoading(true)
-    
-    const form = e.currentTarget
-    const formData = new FormData(form)
-    
-    // Append the rich text description explicitly
-    formData.set('description', descriptionContent)
-    
-    if (editingItem) {
-      const res = await updateCategory(editingItem.id, formData)
+    if (result.isConfirmed) {
+      const res = await deleteCategory(id)
       if (res.success) {
-        Toast.fire({ icon: 'success', title: 'Categoria atualizada!' })
-        setEditingItem(null)
-        setIsModalOpen(false)
-        form.reset()
+        Toast.fire({ icon: 'success', title: 'Categoria eliminada!' })
       } else {
-        Toast.fire({ icon: 'error', title: res.error || 'Erro ao atualizar' })
-      }
-    } else {
-      const res = await createCategory(formData)
-      if (res.success) {
-        Toast.fire({ icon: 'success', title: 'Categoria criada!' })
-        setIsModalOpen(false)
-        form.reset()
-      } else {
-        Toast.fire({ icon: 'error', title: res.error || 'Erro ao criar' })
+        Toast.fire({ icon: 'error', title: res.error || 'Erro ao eliminar' })
       }
     }
-    
-    setLoading(false)
-  }
-
-  const handleDelete = async (id: number) => {
-    setLoading(true)
-    const res = await deleteCategory(id)
-    if (res.success) {
-      Toast.fire({ icon: 'success', title: 'Categoria eliminada!' })
-    } else {
-      Toast.fire({ icon: 'error', title: res.error || 'Erro ao eliminar' })
-    }
-    setLoading(false)
-  }
-
-  const handleCancel = () => {
-    setIsModalOpen(false)
-    setTimeout(() => {
-      setEditingItem(null)
-      setDescriptionContent('')
-    }, 300)
   }
 
   return (
@@ -86,133 +50,68 @@ export default function CategoryManager({ categories }: { categories: CategoryPr
           <Layers size={18} className="text-neon-blue" />
           Categorias Existentes ({categories.length})
         </h2>
-        <button 
-          onClick={() => {
-            setEditingItem(null)
-            setDescriptionContent('')
-            setIsModalOpen(true)
-          }}
-          className="bg-neon-purple text-white px-4 py-2 rounded-xl font-bold text-sm shadow-[0_0_15px_-3px_rgba(188,19,254,0.4)] hover:scale-105 transition-all flex items-center gap-2"
+        <Link
+          href="/admin/store/categories/new"
+          className="bg-neon-purple text-white px-5 py-2.5 rounded-xl font-bold text-xs shadow-[0_0_15px_rgba(168,85,247,0.3)] hover:bg-neon-purple/80 transition-all flex items-center gap-2 select-none"
         >
           <PlusCircle size={16} /> Nova Categoria
-        </button>
+        </Link>
       </div>
-
-      <Modal 
-        isOpen={isModalOpen} 
-        onClose={handleCancel}
-        title={
-          <>
-            {editingItem ? <Edit size={18} className="text-neon-pink" /> : <PlusCircle size={18} className="text-neon-purple" />}
-            {editingItem ? 'Editar Categoria' : 'Nova Categoria'}
-          </>
-        }
-      >
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div>
-            <label className="block text-xs font-bold text-gray-300 mb-1">Nome *</label>
-            <input name="name" type="text" placeholder="Ex: Ranks" required defaultValue={editingItem?.name || ''}
-              className="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-neon-purple" />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-gray-300 mb-1">Slug (URL) *</label>
-            <input name="slug" type="text" placeholder="Ex: ranks" required defaultValue={editingItem?.slug || ''}
-              className="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-neon-purple font-mono" />
-            <p className="text-[10px] text-gray-500 mt-1">Como vai aparecer no link: /loja/slug</p>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-gray-300 mb-1">Descrição</label>
-            <RichTextEditor 
-              content={descriptionContent} 
-              onChange={setDescriptionContent} 
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-gray-300 mb-1">Ícone</label>
-            <input name="icon" type="text" placeholder="Ex: Shield, Star, Crown" defaultValue={editingItem?.icon || ''}
-              className="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-neon-purple" />
-            <p className="text-[10px] text-gray-500 mt-1">Nome do ícone da biblioteca Lucide React</p>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-gray-300 mb-1">Ordem</label>
-            <input name="order" type="number" defaultValue={editingItem?.order ?? 0} required
-              className="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-neon-purple" />
-            <p className="text-[10px] text-gray-500 mt-1">Números menores aparecem primeiro (ex: 0, 1, 2...)</p>
-          </div>
-
-          <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2.5 mt-2">
-            <input type="checkbox" name="isHidden" id="isHidden" defaultChecked={editingItem?.isHidden}
-              className="w-4 h-4 rounded border-gray-300 text-red-500 focus:ring-red-500 bg-black/50 cursor-pointer" />
-            <label htmlFor="isHidden" className="text-sm text-red-200 font-bold cursor-pointer select-none">
-              Ocultar Categoria da Loja
-            </label>
-          </div>
-
-          <div className="flex gap-2 pt-2">
-            <button type="submit" disabled={loading} className="flex-1 h-[44px] bg-black/50 border border-white/10 hover:border-neon-purple hover:bg-white/5 rounded-xl font-bold text-sm text-white transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-50">
-              {loading ? 'A processar...' : (editingItem ? 'Guardar Alterações' : 'Criar Categoria')}
-            </button>
-            <button type="button" onClick={handleCancel} disabled={loading} className="px-6 h-[44px] bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 rounded-xl font-bold text-sm text-red-400 transition-all flex items-center justify-center shadow-sm disabled:opacity-50">
-              Cancelar
-            </button>
-          </div>
-        </form>
-      </Modal>
 
       {/* Lista */}
       <div className="flex flex-col gap-4">
-
         {categories.length === 0 ? (
-          <div className="gale-panel p-12 text-center text-gray-400 border border-white/10">
+          <div className="gale-panel p-12 text-center text-gray-400 border border-white/10 rounded-2xl">
             <Layers size={48} className="mx-auto mb-3 opacity-20" />
             <p className="font-bold">Nenhuma categoria criada.</p>
+            <p className="text-xs text-gray-500 mt-1">Clica no botão &quot;Nova Categoria&quot; acima para organizares os teus produtos.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {categories.map((cat) => (
-              <div key={cat.id} className={`gale-panel p-5 border flex flex-col justify-between gap-4 ${cat.isHidden ? 'border-red-500/30 opacity-70' : 'border-white/10'}`}>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      {cat.isHidden ? (
-                        <span className="text-[10px] uppercase font-bold text-red-400 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/20 flex items-center gap-1">
-                          <EyeOff size={10} /> Oculto
-                        </span>
-                      ) : (
-                        <span className="text-[10px] uppercase font-bold text-green-400 bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20 flex items-center gap-1">
-                          <Eye size={10} /> Visível
-                        </span>
-                      )}
-                      <span className="text-[10px] uppercase font-bold text-gray-400 bg-white/5 px-2 py-0.5 rounded-full border border-white/5">
-                        Ordem: {cat.order}
+              <div
+                key={cat.id}
+                className={`gale-panel p-5 border flex flex-col justify-between gap-4 transition-all rounded-2xl ${
+                  cat.isHidden
+                    ? 'border-red-500/30 opacity-70 bg-black/40'
+                    : 'border-white/10 hover:border-neon-purple/50'
+                }`}
+              >
+                <div>
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="text-[10px] uppercase font-bold text-gray-400 bg-white/5 px-2 py-0.5 rounded-full border border-white/5 font-mono">
+                      Ordem: #{cat.order}
+                    </span>
+                    {cat.isHidden && (
+                      <span className="text-[10px] uppercase font-bold text-red-400 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/20 flex items-center gap-1">
+                        <EyeOff size={10} /> Oculta
                       </span>
-                    </div>
-                    <p className="font-bold text-white text-lg leading-tight flex items-center gap-2">
-                      {cat.name}
-                    </p>
-                    <p className="text-xs text-gray-400 font-mono mt-1">/{cat.slug}</p>
-                    <p className="text-sm text-neon-blue font-semibold mt-2">{cat.products.length} Produtos</p>
+                    )}
                   </div>
+                  <p className="font-bold text-white text-lg leading-tight flex items-center gap-2">
+                    {cat.name}
+                  </p>
+                  <p className="text-xs text-gray-500 font-mono mt-1">/{cat.slug}</p>
+                  <p className="text-xs text-neon-blue mt-2 font-medium">
+                    {cat.products.length} {cat.products.length === 1 ? 'produto associado' : 'produtos associados'}
+                  </p>
                 </div>
-                
+
                 <div className="flex gap-2 justify-end mt-2 pt-4 border-t border-white/5">
-                  <button 
-                    onClick={() => {
-                      setEditingItem(cat)
-                      setDescriptionContent(cat.description || '')
-                      setIsModalOpen(true)
-                    }}
-                    className="px-3 py-1.5 rounded-lg font-bold text-xs bg-neon-blue/10 text-neon-blue hover:bg-neon-blue/20 transition-colors flex items-center gap-1"
+                  <Link
+                    href={`/admin/store/categories/${cat.id}`}
+                    className="w-[36px] h-[36px] flex items-center justify-center bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/20 rounded-lg transition-all"
+                    title="Editar Categoria"
                   >
-                    <Edit size={14} /> Editar
+                    <Edit size={16} />
+                  </Link>
+                  <button
+                    onClick={() => handleDelete(cat.id, cat.name)}
+                    className="w-[36px] h-[36px] flex items-center justify-center bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 rounded-lg transition-all"
+                    title="Eliminar Categoria"
+                  >
+                    <Trash2 size={16} />
                   </button>
-                  <form action={async () => { await handleDelete(cat.id) }}>
-                    <DeleteButton confirmMessage={`Eliminar categoria "${cat.name}"?`} />
-                  </form>
                 </div>
               </div>
             ))}

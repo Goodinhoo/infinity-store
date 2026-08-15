@@ -99,9 +99,9 @@ export default function PageForm({
         <button 
           type="submit" 
           disabled={isSubmitting}
-          className="px-8 py-3 bg-neon-purple/20 text-neon-purple hover:bg-neon-purple/30 border border-neon-purple/30 rounded-xl font-bold flex items-center gap-2 transition-all disabled:opacity-50"
+          className="px-6 py-2.5 bg-neon-purple hover:bg-neon-purple/80 text-white font-bold text-xs rounded-xl transition-all shadow-[0_0_15px_rgba(168,85,247,0.3)] disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer select-none"
         >
-          <Save size={20} />
+          <Save size={18} />
           {isSubmitting ? 'A Guardar...' : submitLabel}
         </button>
       </div>
