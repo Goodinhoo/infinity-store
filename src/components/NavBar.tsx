@@ -6,6 +6,7 @@ import Image from 'next/image'
 import CartButton from './CartButton'
 import { useState } from 'react'
 import { User, Menu, X } from 'lucide-react'
+import { resolveLucideIcon } from '@/components/DynamicIcon'
 import { useModules, useGlobalSettings } from './Providers'
 import CenteredBrandHeader from './templates/CenteredBrandHeader'
 

@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { getGlobalSettings, saveGlobalSettings } from '@/app/actions/global-settings'
-import { Palette, Save, Code, CheckCircle2, Sparkles, RefreshCw, Sliders, Eye, Layout, ShieldAlert } from 'lucide-react'
+import { Palette, Save, Code, CheckCircle2, Sparkles, RefreshCw, Sliders, Eye, Layout } from 'lucide-react'
 import { Toast } from '@/lib/toast'
 import { THEME_PRESETS, ThemePreset } from '@/lib/themes'
-import { STORE_TEMPLATES, StoreTemplate } from '@/lib/templates'
+import { STORE_TEMPLATES } from '@/lib/templates'
 import DynamicIcon from '@/components/DynamicIcon'
 
 export default function AdminAppearance() {
