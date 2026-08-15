@@ -28,9 +28,28 @@ export default async function RootLayout({
   const settings = await getGlobalSettings();
   const navItems = await getNavigationItems();
 
+  const primary = settings.THEME_PRIMARY_COLOR || '#bc13fe'
+  const secondary = settings.THEME_SECONDARY_COLOR || '#00f0ff'
+  const accent = settings.THEME_ACCENT_COLOR || '#ff007f'
+  const background = settings.THEME_BACKGROUND_COLOR || '#08080c'
+
+  const themeStyles = `
+    :root {
+      --color-primary: ${primary};
+      --neon-purple: ${primary};
+      --neon-blue: ${secondary};
+      --neon-pink: ${accent};
+      --background: ${background};
+    }
+    body {
+      background-color: ${background} !important;
+    }
+  `
+
   return (
     <html lang="pt-PT" className="dark">
-      <body className="min-h-screen bg-[#08080c] text-gray-100 flex flex-col justify-between antialiased">
+      <body className="min-h-screen text-gray-100 flex flex-col justify-between antialiased" style={{ backgroundColor: background }}>
+        <style id="theme-variables-live" dangerouslySetInnerHTML={{ __html: themeStyles }} />
         {settings.CUSTOM_CSS && (
           <style id="custom-css-live" dangerouslySetInnerHTML={{ __html: settings.CUSTOM_CSS }} />
         )}

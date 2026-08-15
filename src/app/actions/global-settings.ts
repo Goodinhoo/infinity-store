@@ -17,6 +17,11 @@ export type GlobalSettingsKeys =
   | 'STORE_FAVICON_URL'
   | 'STORE_BANNER_URL'
   | 'CUSTOM_CSS'
+  | 'ACTIVE_THEME'
+  | 'THEME_PRIMARY_COLOR'
+  | 'THEME_SECONDARY_COLOR'
+  | 'THEME_ACCENT_COLOR'
+  | 'THEME_BACKGROUND_COLOR'
 
 export type GlobalSettings = Record<GlobalSettingsKeys, string>
 
@@ -30,7 +35,12 @@ const defaultSettings: GlobalSettings = {
   STORE_LOGO_URL: '/logo.png',
   STORE_FAVICON_URL: '/favicon.ico',
   STORE_BANNER_URL: '/images/banner.png',
-  CUSTOM_CSS: '/* Escreve aqui o teu CSS personalizado */\n\n'
+  CUSTOM_CSS: '/* Escreve aqui o teu CSS personalizado */\n\n',
+  ACTIVE_THEME: 'INFINITY_NEON',
+  THEME_PRIMARY_COLOR: '#bc13fe',
+  THEME_SECONDARY_COLOR: '#00f0ff',
+  THEME_ACCENT_COLOR: '#ff007f',
+  THEME_BACKGROUND_COLOR: '#08080c',
 }
 
 export async function getGlobalSettings(): Promise<GlobalSettings> {
