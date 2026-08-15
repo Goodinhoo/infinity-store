@@ -22,6 +22,7 @@ export type GlobalSettingsKeys =
   | 'THEME_SECONDARY_COLOR'
   | 'THEME_ACCENT_COLOR'
   | 'THEME_BACKGROUND_COLOR'
+  | 'STORE_TEMPLATE'
 
 export type GlobalSettings = Record<GlobalSettingsKeys, string>
 
@@ -41,6 +42,7 @@ const defaultSettings: GlobalSettings = {
   THEME_SECONDARY_COLOR: '#00f0ff',
   THEME_ACCENT_COLOR: '#ff007f',
   THEME_BACKGROUND_COLOR: '#08080c',
+  STORE_TEMPLATE: 'MODERN_GLASS',
 }
 
 export async function getGlobalSettings(): Promise<GlobalSettings> {

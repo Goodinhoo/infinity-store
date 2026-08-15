@@ -2,14 +2,19 @@
 
 import { useState, useEffect } from 'react'
 import { getGlobalSettings, saveGlobalSettings } from '@/app/actions/global-settings'
-import { Palette, Save, Code, CheckCircle2, Sparkles, RefreshCw, Sliders, Eye } from 'lucide-react'
+import { Palette, Save, Code, CheckCircle2, Sparkles, RefreshCw, Sliders, Eye, Layout, ShieldAlert } from 'lucide-react'
 import { Toast } from '@/lib/toast'
 import { THEME_PRESETS, ThemePreset } from '@/lib/themes'
+import { STORE_TEMPLATES, StoreTemplate } from '@/lib/templates'
 import DynamicIcon from '@/components/DynamicIcon'
 
 export default function AdminAppearance() {
   const [savedThemeId, setSavedThemeId] = useState('INFINITY_NEON')
   const [selectedThemeId, setSelectedThemeId] = useState('INFINITY_NEON')
+
+  const [savedTemplateId, setSavedTemplateId] = useState('MODERN_GLASS')
+  const [selectedTemplateId, setSelectedTemplateId] = useState('MODERN_GLASS')
+
   const [primaryColor, setPrimaryColor] = useState('#bc13fe')
   const [secondaryColor, setSecondaryColor] = useState('#00f0ff')
   const [accentColor, setAccentColor] = useState('#ff007f')
@@ -24,8 +29,11 @@ export default function AdminAppearance() {
       try {
         const data = await getGlobalSettings()
         const theme = data.ACTIVE_THEME || 'INFINITY_NEON'
+        const tmpl = data.STORE_TEMPLATE || 'MODERN_GLASS'
         setSavedThemeId(theme)
         setSelectedThemeId(theme)
+        setSavedTemplateId(tmpl)
+        setSelectedTemplateId(tmpl)
         setPrimaryColor(data.THEME_PRIMARY_COLOR || '#bc13fe')
         setSecondaryColor(data.THEME_SECONDARY_COLOR || '#00f0ff')
         setAccentColor(data.THEME_ACCENT_COLOR || '#ff007f')
@@ -84,7 +92,6 @@ export default function AdminAppearance() {
     setAccentColor(preset.accent)
     setBackgroundColor(preset.background)
 
-    // Pre-visualização instantânea
     applyLiveStyles(preset.id, preset.primary, preset.secondary, preset.accent, preset.background, cssCode)
   }
 
@@ -93,6 +100,7 @@ export default function AdminAppearance() {
     try {
       const res = await saveGlobalSettings({
         ACTIVE_THEME: selectedThemeId,
+        STORE_TEMPLATE: selectedTemplateId,
         THEME_PRIMARY_COLOR: primaryColor,
         THEME_SECONDARY_COLOR: secondaryColor,
         THEME_ACCENT_COLOR: accentColor,
@@ -102,8 +110,9 @@ export default function AdminAppearance() {
 
       if (res.success) {
         setSavedThemeId(selectedThemeId)
+        setSavedTemplateId(selectedTemplateId)
         applyLiveStyles(selectedThemeId, primaryColor, secondaryColor, accentColor, backgroundColor, cssCode)
-        Toast.fire({ icon: 'success', title: 'Aparência e tema publicados na loja com sucesso!' })
+        Toast.fire({ icon: 'success', title: 'Aparência e template publicados na loja com sucesso!' })
       } else {
         Toast.fire({ icon: 'error', title: res.error || 'Erro ao guardar.' })
       }
@@ -155,10 +164,10 @@ export default function AdminAppearance() {
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-6">
         <div>
           <h1 className="text-2xl font-black uppercase text-white flex items-center gap-3">
-            <Palette className="text-neon-purple" size={28} /> Aparência & Temas da Loja
+            <Palette className="text-neon-purple" size={28} /> Aparência, Templates & Temas
           </h1>
           <p className="text-gray-400 text-xs mt-1">
-            Escolhe o tema da loja, personaliza as cores hexadecimais ou adiciona regras de CSS personalizadas.
+            Escolhe o layout estrutural da loja, temas de cores, personalização HEX e regras de CSS avançadas.
           </p>
         </div>
 
@@ -176,16 +185,82 @@ export default function AdminAppearance() {
         <div className="p-12 text-center text-gray-400 font-bold">A carregar temas e configurações...</div>
       ) : (
         <>
-          {/* Seção 1: Temas Pré-definidos */}
+          {/* SEÇÃO A: TEMPLATES DE LAYOUT E ESTRUTURA */}
           <section className="space-y-4">
             <div className="flex items-center gap-2">
-              <Sparkles size={20} className="text-yellow-400" />
+              <Layout size={20} className="text-neon-blue" />
               <h2 className="text-lg font-bold text-white uppercase tracking-wider">
-                Temas Pré-definidos
+                Templates de Layout (Estrutura da Loja)
               </h2>
             </div>
             <p className="text-xs text-gray-400">
-              Clica num tema para experimentar a sua paleta de cores em tempo real. Depois, clica em <strong>&quot;Guardar Aparência&quot;</strong> no topo para publicar na loja.
+              Altera a disposição dos menus, formato dos cards de produto e sidebar da loja.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+              {STORE_TEMPLATES.map((tmpl) => {
+                const isSavedActive = savedTemplateId === tmpl.id
+                const isSelected = selectedTemplateId === tmpl.id
+
+                return (
+                  <div
+                    key={tmpl.id}
+                    onClick={() => setSelectedTemplateId(tmpl.id)}
+                    className={`gale-panel p-6 border rounded-2xl cursor-pointer transition-all duration-300 relative flex flex-col justify-between group ${
+                      isSavedActive
+                        ? 'border-emerald-500/80 bg-emerald-500/10 shadow-[0_0_20px_rgba(16,185,129,0.2)]'
+                        : isSelected
+                        ? 'border-yellow-500/80 bg-yellow-500/10 shadow-[0_0_20px_rgba(234,179,8,0.2)] scale-[1.01]'
+                        : 'border-white/10 hover:border-white/30 hover:bg-white/5'
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2 text-white font-bold text-base">
+                          <DynamicIcon name={tmpl.iconName} size={20} className="text-neon-blue" />
+                          <span>{tmpl.name}</span>
+                        </div>
+
+                        {isSavedActive ? (
+                          <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] uppercase font-black rounded-full flex items-center gap-1 shadow-md">
+                            <CheckCircle2 size={12} /> Ativo na Loja
+                          </span>
+                        ) : isSelected ? (
+                          <span className="px-2.5 py-1 bg-yellow-500/20 text-yellow-400 border border-yellow-500/40 text-[10px] uppercase font-black rounded-full flex items-center gap-1 shadow-md animate-pulse">
+                            <Eye size={12} /> Selecionado (Rascunho)
+                          </span>
+                        ) : null}
+                      </div>
+
+                      <p className="text-xs text-gray-400 leading-relaxed mb-6">
+                        {tmpl.subtitle}
+                      </p>
+                    </div>
+
+                    <div className="pt-4 border-t border-white/5 flex items-center justify-between">
+                      <span className="text-[10px] font-mono font-bold text-gray-500 uppercase tracking-wider">
+                        Estilo: {tmpl.badge}
+                      </span>
+                      <span className="text-[10px] text-neon-purple font-bold">
+                        {tmpl.cardStyle === 'HORIZONTAL_LIST' ? 'Cards em Lista' : 'Cards 3D Grid'}
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </section>
+
+          {/* SEÇÃO B: TEMAS DE CORES */}
+          <section className="space-y-4 pt-4 border-t border-white/10">
+            <div className="flex items-center gap-2">
+              <Sparkles size={20} className="text-yellow-400" />
+              <h2 className="text-lg font-bold text-white uppercase tracking-wider">
+                Temas de Cores Pré-definidos
+              </h2>
+            </div>
+            <p className="text-xs text-gray-400">
+              Clica num tema para aplicar a sua paleta de cores. Depois, clica em <strong>&quot;Guardar Aparência&quot;</strong> para publicar.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">
@@ -261,7 +336,7 @@ export default function AdminAppearance() {
             </div>
           </section>
 
-          {/* Seção 2: Personalização Fina de Cores (Color Pickers) */}
+          {/* SEÇÃO C: PERSONALIZAÇÃO HEX */}
           <section className="gale-panel p-6 border border-white/10 space-y-6 rounded-2xl">
             <div className="flex items-center gap-2 border-b border-white/10 pb-4">
               <Sliders size={20} className="text-neon-blue" />
@@ -276,7 +351,6 @@ export default function AdminAppearance() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {/* Cor Primária */}
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider">
                   Cor Primária (Destaques)
@@ -303,7 +377,6 @@ export default function AdminAppearance() {
                 </div>
               </div>
 
-              {/* Cor Secundária */}
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider">
                   Cor Secundária (Botões/Ações)
@@ -330,7 +403,6 @@ export default function AdminAppearance() {
                 </div>
               </div>
 
-              {/* Cor de Acento */}
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider">
                   Cor de Acento (Badges)
@@ -357,7 +429,6 @@ export default function AdminAppearance() {
                 </div>
               </div>
 
-              {/* Cor de Fundo */}
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider">
                   Fundo Principal (Background)
@@ -386,7 +457,7 @@ export default function AdminAppearance() {
             </div>
           </section>
 
-          {/* Seção 3: Editor de CSS Personalizado */}
+          {/* SEÇÃO D: EDITOR DE CSS PERSONALIZADO */}
           <section className="gale-panel p-6 border border-white/10 space-y-4 rounded-2xl">
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <div className="flex items-center gap-2">

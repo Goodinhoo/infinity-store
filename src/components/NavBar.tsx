@@ -6,8 +6,8 @@ import Image from 'next/image'
 import CartButton from './CartButton'
 import { useState } from 'react'
 import { User, Menu, X } from 'lucide-react'
-import { resolveLucideIcon } from '@/components/DynamicIcon'
 import { useModules, useGlobalSettings } from './Providers'
+import CenteredBrandHeader from './templates/CenteredBrandHeader'
 
 type NavItem = {
   id: number
@@ -45,6 +45,10 @@ export default function NavBar({ initialNavItems }: { initialNavItems: NavItem[]
     label: item.label,
     icon: resolveLucideIcon(item.icon)
   }))
+
+  if (settings.STORE_TEMPLATE === 'CLASSIC_PORTAL') {
+    return <CenteredBrandHeader initialNavItems={initialNavItems} />
+  }
 
   return (
     <nav className="sticky top-0 z-40 bg-[#08080c]/85 backdrop-blur-xl border-b border-white/5 shadow-2xl">

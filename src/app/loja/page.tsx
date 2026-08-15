@@ -3,6 +3,9 @@ import Link from 'next/link'
 import ProductCard from '@/components/ProductCard'
 import { ShoppingBag, Zap, Layers } from 'lucide-react'
 import DynamicIcon from '@/components/DynamicIcon'
+import { getGlobalSettings } from '@/app/actions/global-settings'
+import ClassicSidebar from '@/components/templates/ClassicSidebar'
+import ProductCardList from '@/components/templates/ProductCardList'
 
 export const metadata = {
   title: 'Loja Oficial - Infinity Nexus',
@@ -20,6 +23,8 @@ export default async function StorePage() {
     orderBy: { order: 'asc' }
   })
 
+  const settings = await getGlobalSettings()
+
   const allProducts = await prisma.product.findMany({
     where: { 
       isHidden: false,
@@ -28,6 +33,42 @@ export default async function StorePage() {
     include: { category: true },
     orderBy: { createdAt: 'desc' }
   })
+
+  if (settings.STORE_TEMPLATE === 'CLASSIC_PORTAL') {
+    return (
+      <div className="flex flex-col lg:flex-row gap-8 animate-fade-in">
+        <ClassicSidebar
+          categories={categories}
+          serverIp={settings.SERVER_IP}
+          serverVersions={settings.SERVER_VERSIONS}
+        />
+        <div className="flex-1 space-y-6">
+          <header className="gale-panel p-6 border border-white/10 flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-black text-white">Catálogo da Loja</h1>
+              <p className="text-xs text-gray-400">Todos os produtos disponíveis no servidor</p>
+            </div>
+            <span className="text-xs font-bold text-neon-purple px-3 py-1 bg-neon-purple/10 rounded-full border border-neon-purple/20">
+              {allProducts.length} itens
+            </span>
+          </header>
+
+          {allProducts.length === 0 ? (
+            <div className="gale-panel p-16 text-center text-gray-400">
+              <Layers size={48} className="mx-auto mb-3 opacity-20 text-neon-blue" />
+              <p className="font-bold text-white">Sem produtos no catálogo</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4">
+              {allProducts.map((product) => (
+                <ProductCardList key={product.id} product={product} />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col gap-10 animate-fade-in">
