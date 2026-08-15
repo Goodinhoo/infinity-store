@@ -47,7 +47,7 @@ export default async function RootLayout({
   `
 
   return (
-    <html lang="pt-PT" className="dark">
+    <html lang="pt-PT" className="dark" data-theme={settings.ACTIVE_THEME || 'INFINITY_NEON'}>
       <body className="min-h-screen text-gray-100 flex flex-col justify-between antialiased" style={{ backgroundColor: background }}>
         <style id="theme-variables-live" dangerouslySetInnerHTML={{ __html: themeStyles }} />
         {settings.CUSTOM_CSS && (

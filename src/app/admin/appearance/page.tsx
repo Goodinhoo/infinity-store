@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import { getGlobalSettings, saveGlobalSettings } from '@/app/actions/global-settings'
-import { Palette, Save, Code, CheckCircle2, Sparkles, RefreshCw, Sliders } from 'lucide-react'
+import { Palette, Save, Code, CheckCircle2, Sparkles, RefreshCw, Sliders, Eye } from 'lucide-react'
 import { Toast } from '@/lib/toast'
 import { THEME_PRESETS, ThemePreset } from '@/lib/themes'
 import DynamicIcon from '@/components/DynamicIcon'
 
 export default function AdminAppearance() {
-  const [activeThemeId, setActiveThemeId] = useState('INFINITY_NEON')
+  const [savedThemeId, setSavedThemeId] = useState('INFINITY_NEON')
+  const [selectedThemeId, setSelectedThemeId] = useState('INFINITY_NEON')
   const [primaryColor, setPrimaryColor] = useState('#bc13fe')
   const [secondaryColor, setSecondaryColor] = useState('#00f0ff')
   const [accentColor, setAccentColor] = useState('#ff007f')
@@ -22,7 +23,9 @@ export default function AdminAppearance() {
       setLoading(true)
       try {
         const data = await getGlobalSettings()
-        setActiveThemeId(data.ACTIVE_THEME || 'INFINITY_NEON')
+        const theme = data.ACTIVE_THEME || 'INFINITY_NEON'
+        setSavedThemeId(theme)
+        setSelectedThemeId(theme)
         setPrimaryColor(data.THEME_PRIMARY_COLOR || '#bc13fe')
         setSecondaryColor(data.THEME_SECONDARY_COLOR || '#00f0ff')
         setAccentColor(data.THEME_ACCENT_COLOR || '#ff007f')
@@ -38,16 +41,9 @@ export default function AdminAppearance() {
     loadSettings()
   }, [])
 
-  const handleSelectPreset = (preset: ThemePreset) => {
-    setActiveThemeId(preset.id)
-    setPrimaryColor(preset.primary)
-    setSecondaryColor(preset.secondary)
-    setAccentColor(preset.accent)
-    setBackgroundColor(preset.background)
-  }
+  const applyLiveStyles = (themeId: string, p: string, s: string, a: string, bg: string, css: string) => {
+    document.documentElement.setAttribute('data-theme', themeId)
 
-  const applyLiveStyles = (p: string, s: string, a: string, bg: string, css: string) => {
-    // 1. Atualizar estilo de variáveis do tema
     const themeStyles = `
       :root {
         --color-primary: ${p};
@@ -70,7 +66,6 @@ export default function AdminAppearance() {
       document.head.appendChild(themeNode)
     }
 
-    // 2. Atualizar CSS personalizado
     let customCssNode = document.getElementById('custom-css-live')
     if (customCssNode) {
       customCssNode.innerHTML = css
@@ -82,11 +77,22 @@ export default function AdminAppearance() {
     }
   }
 
+  const handleSelectPreset = (preset: ThemePreset) => {
+    setSelectedThemeId(preset.id)
+    setPrimaryColor(preset.primary)
+    setSecondaryColor(preset.secondary)
+    setAccentColor(preset.accent)
+    setBackgroundColor(preset.background)
+
+    // Pre-visualização instantânea
+    applyLiveStyles(preset.id, preset.primary, preset.secondary, preset.accent, preset.background, cssCode)
+  }
+
   async function handleSave() {
     setSaving(true)
     try {
-      await saveGlobalSettings({
-        ACTIVE_THEME: activeThemeId,
+      const res = await saveGlobalSettings({
+        ACTIVE_THEME: selectedThemeId,
         THEME_PRIMARY_COLOR: primaryColor,
         THEME_SECONDARY_COLOR: secondaryColor,
         THEME_ACCENT_COLOR: accentColor,
@@ -94,8 +100,13 @@ export default function AdminAppearance() {
         CUSTOM_CSS: cssCode,
       })
 
-      applyLiveStyles(primaryColor, secondaryColor, accentColor, backgroundColor, cssCode)
-      Toast.fire({ icon: 'success', title: 'Aparência e tema guardados com sucesso!' })
+      if (res.success) {
+        setSavedThemeId(selectedThemeId)
+        applyLiveStyles(selectedThemeId, primaryColor, secondaryColor, accentColor, backgroundColor, cssCode)
+        Toast.fire({ icon: 'success', title: 'Aparência e tema publicados na loja com sucesso!' })
+      } else {
+        Toast.fire({ icon: 'error', title: res.error || 'Erro ao guardar.' })
+      }
     } catch {
       Toast.fire({ icon: 'error', title: 'Erro ao guardar configurações.' })
     } finally {
@@ -103,7 +114,6 @@ export default function AdminAppearance() {
     }
   }
 
-  // Auto-indent & syntax helper para o editor de CSS
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Tab') {
       e.preventDefault()
@@ -148,7 +158,7 @@ export default function AdminAppearance() {
             <Palette className="text-neon-purple" size={28} /> Aparência & Temas da Loja
           </h1>
           <p className="text-gray-400 text-xs mt-1">
-            Escolhe um tema pré-definido, personaliza as cores do site ou adiciona regras de CSS personalizadas.
+            Escolhe o tema da loja, personaliza as cores hexadecimais ou adiciona regras de CSS personalizadas.
           </p>
         </div>
 
@@ -158,7 +168,7 @@ export default function AdminAppearance() {
           className="px-6 py-3 bg-neon-purple hover:bg-neon-purple/80 text-white font-bold text-xs rounded-xl transition-all shadow-[0_0_20px_rgba(168,85,247,0.4)] disabled:opacity-50 flex items-center gap-2 cursor-pointer select-none"
         >
           <Save size={16} />
-          {saving ? 'A guardar...' : 'Guardar Aparência'}
+          {saving ? 'A publicar...' : 'Guardar Aparência'}
         </button>
       </div>
 
@@ -175,20 +185,23 @@ export default function AdminAppearance() {
               </h2>
             </div>
             <p className="text-xs text-gray-400">
-              Clica num tema para aplicar instantaneamente a sua paleta de cores. Podes ajustar as cores individualmente abaixo.
+              Clica num tema para experimentar a sua paleta de cores em tempo real. Depois, clica em <strong>&quot;Guardar Aparência&quot;</strong> no topo para publicar na loja.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">
               {THEME_PRESETS.map((preset) => {
-                const isActive = activeThemeId === preset.id
+                const isSavedActive = savedThemeId === preset.id
+                const isSelected = selectedThemeId === preset.id
 
                 return (
                   <div
                     key={preset.id}
                     onClick={() => handleSelectPreset(preset)}
                     className={`gale-panel p-6 border rounded-2xl cursor-pointer transition-all duration-300 relative flex flex-col justify-between group ${
-                      isActive
-                        ? 'border-neon-purple bg-neon-purple/10 shadow-[0_0_25px_rgba(168,85,247,0.25)] scale-[1.02]'
+                      isSavedActive
+                        ? 'border-emerald-500/80 bg-emerald-500/10 shadow-[0_0_20px_rgba(16,185,129,0.2)]'
+                        : isSelected
+                        ? 'border-yellow-500/80 bg-yellow-500/10 shadow-[0_0_20px_rgba(234,179,8,0.2)] scale-[1.01]'
                         : 'border-white/10 hover:border-white/30 hover:bg-white/5'
                     }`}
                   >
@@ -198,11 +211,16 @@ export default function AdminAppearance() {
                           <DynamicIcon name={preset.iconName} size={20} className="text-neon-purple" />
                           <span>{preset.name}</span>
                         </div>
-                        {isActive && (
-                          <span className="px-2.5 py-1 bg-neon-purple text-white text-[10px] uppercase font-black rounded-full flex items-center gap-1 shadow-md">
-                            <CheckCircle2 size={12} /> Ativo
+
+                        {isSavedActive ? (
+                          <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] uppercase font-black rounded-full flex items-center gap-1 shadow-md">
+                            <CheckCircle2 size={12} /> Ativo na Loja
                           </span>
-                        )}
+                        ) : isSelected ? (
+                          <span className="px-2.5 py-1 bg-yellow-500/20 text-yellow-400 border border-yellow-500/40 text-[10px] uppercase font-black rounded-full flex items-center gap-1 shadow-md animate-pulse">
+                            <Eye size={12} /> Selecionado (Rascunho)
+                          </span>
+                        ) : null}
                       </div>
                       <p className="text-xs text-gray-400 leading-relaxed mb-6">
                         {preset.subtitle}
@@ -267,13 +285,19 @@ export default function AdminAppearance() {
                   <input
                     type="color"
                     value={primaryColor}
-                    onChange={(e) => setPrimaryColor(e.target.value)}
+                    onChange={(e) => {
+                      setPrimaryColor(e.target.value)
+                      applyLiveStyles(selectedThemeId, e.target.value, secondaryColor, accentColor, backgroundColor, cssCode)
+                    }}
                     className="w-11 h-11 rounded-xl bg-transparent border border-white/10 cursor-pointer p-1"
                   />
                   <input
                     type="text"
                     value={primaryColor}
-                    onChange={(e) => setPrimaryColor(e.target.value)}
+                    onChange={(e) => {
+                      setPrimaryColor(e.target.value)
+                      applyLiveStyles(selectedThemeId, e.target.value, secondaryColor, accentColor, backgroundColor, cssCode)
+                    }}
                     className="flex-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-neon-purple font-mono uppercase"
                   />
                 </div>
@@ -288,13 +312,19 @@ export default function AdminAppearance() {
                   <input
                     type="color"
                     value={secondaryColor}
-                    onChange={(e) => setSecondaryColor(e.target.value)}
+                    onChange={(e) => {
+                      setSecondaryColor(e.target.value)
+                      applyLiveStyles(selectedThemeId, primaryColor, e.target.value, accentColor, backgroundColor, cssCode)
+                    }}
                     className="w-11 h-11 rounded-xl bg-transparent border border-white/10 cursor-pointer p-1"
                   />
                   <input
                     type="text"
                     value={secondaryColor}
-                    onChange={(e) => setSecondaryColor(e.target.value)}
+                    onChange={(e) => {
+                      setSecondaryColor(e.target.value)
+                      applyLiveStyles(selectedThemeId, primaryColor, e.target.value, accentColor, backgroundColor, cssCode)
+                    }}
                     className="flex-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-neon-purple font-mono uppercase"
                   />
                 </div>
@@ -309,13 +339,19 @@ export default function AdminAppearance() {
                   <input
                     type="color"
                     value={accentColor}
-                    onChange={(e) => setAccentColor(e.target.value)}
+                    onChange={(e) => {
+                      setAccentColor(e.target.value)
+                      applyLiveStyles(selectedThemeId, primaryColor, secondaryColor, e.target.value, backgroundColor, cssCode)
+                    }}
                     className="w-11 h-11 rounded-xl bg-transparent border border-white/10 cursor-pointer p-1"
                   />
                   <input
                     type="text"
                     value={accentColor}
-                    onChange={(e) => setAccentColor(e.target.value)}
+                    onChange={(e) => {
+                      setAccentColor(e.target.value)
+                      applyLiveStyles(selectedThemeId, primaryColor, secondaryColor, e.target.value, backgroundColor, cssCode)
+                    }}
                     className="flex-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-neon-purple font-mono uppercase"
                   />
                 </div>
@@ -330,13 +366,19 @@ export default function AdminAppearance() {
                   <input
                     type="color"
                     value={backgroundColor}
-                    onChange={(e) => setBackgroundColor(e.target.value)}
+                    onChange={(e) => {
+                      setBackgroundColor(e.target.value)
+                      applyLiveStyles(selectedThemeId, primaryColor, secondaryColor, accentColor, e.target.value, cssCode)
+                    }}
                     className="w-11 h-11 rounded-xl bg-transparent border border-white/10 cursor-pointer p-1"
                   />
                   <input
                     type="text"
                     value={backgroundColor}
-                    onChange={(e) => setBackgroundColor(e.target.value)}
+                    onChange={(e) => {
+                      setBackgroundColor(e.target.value)
+                      applyLiveStyles(selectedThemeId, primaryColor, secondaryColor, accentColor, e.target.value, cssCode)
+                    }}
                     className="flex-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-neon-purple font-mono uppercase"
                   />
                 </div>
@@ -371,7 +413,10 @@ export default function AdminAppearance() {
 
             <textarea
               value={cssCode}
-              onChange={(e) => setCssCode(e.target.value)}
+              onChange={(e) => {
+                setCssCode(e.target.value)
+                applyLiveStyles(selectedThemeId, primaryColor, secondaryColor, accentColor, backgroundColor, e.target.value)
+              }}
               onKeyDown={handleKeyDown}
               rows={12}
               className="w-full bg-[#050508] border border-white/10 rounded-xl p-4 font-mono text-xs text-emerald-400 focus:outline-none focus:border-neon-purple leading-relaxed custom-scrollbar shadow-inner"
