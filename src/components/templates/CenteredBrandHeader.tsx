@@ -29,8 +29,19 @@ export default function CenteredBrandHeader({
   return (
     <header className="w-full bg-[#050509] border-b border-white/10 shadow-2xl">
       {/* Top Banner / Centered Brand Header */}
-      <div className="relative w-full bg-gradient-to-b from-black/80 via-black/60 to-[#050509] py-10 px-4 border-b border-white/5">
-        <div className="max-w-7xl mx-auto flex flex-col items-center justify-center text-center gap-6">
+      <div className="relative w-full py-12 px-4 border-b border-white/5 overflow-hidden">
+        {settings.STORE_BANNER_URL && (
+          <Image
+            src={settings.STORE_BANNER_URL}
+            alt="Banner Background"
+            fill
+            className="object-cover opacity-20 filter blur-xs scale-105"
+            priority
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-[#050509]" />
+
+        <div className="relative z-10 max-w-7xl mx-auto flex flex-col items-center justify-center text-center gap-6">
           {/* Logo Gigante Centrado */}
           <Link href="/" className="flex flex-col items-center gap-4 group">
             <Image

@@ -93,10 +93,11 @@ export default async function HomePage() {
   return (
     <div className="flex flex-col gap-12 w-full max-w-[2000px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
       
-      {/* Hero Section (Sliders or Static Hero) */}
-      {isSlidersActive && activeSliders.length > 0 ? (
-        <HeroSlider sliders={activeSliders} discordUrl={settings.DISCORD_URL} />
-      ) : (
+      {/* Hero Section (Sliders ou Static Hero) - Ocultado no template CLASSIC_PORTAL pois a imagem grande e IP estao no Header */}
+      {settings.STORE_TEMPLATE !== 'CLASSIC_PORTAL' && (
+        isSlidersActive && activeSliders.length > 0 ? (
+          <HeroSlider sliders={activeSliders} discordUrl={settings.DISCORD_URL} />
+        ) : (
         <section className="relative w-full h-[400px] sm:h-[550px] rounded-3xl overflow-hidden shadow-2xl flex items-center justify-between px-8 sm:px-16 border border-white/10 group">
           <div className="absolute inset-0 bg-black/60 z-10" />
           <div className="absolute inset-0 bg-gradient-to-r from-neon-purple/20 to-neon-blue/20 z-10 mix-blend-overlay" />
