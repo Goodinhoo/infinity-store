@@ -147,7 +147,7 @@ export default async function HomePage() {
           {/* Server IP Card */}
           <ServerIPCard ip={settings.SERVER_IP} versions={settings.SERVER_VERSIONS} />
         </section>
-      )}
+      ))}
 
       {/* Sessão Dupla: Conteúdo Principal + Sidebar */}
       <section className="flex flex-col lg:flex-row gap-6">
