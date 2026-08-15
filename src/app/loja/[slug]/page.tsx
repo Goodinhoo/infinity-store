@@ -7,6 +7,7 @@ import DynamicIcon from '@/components/DynamicIcon'
 import { getGlobalSettings } from '@/app/actions/global-settings'
 import ClassicSidebar from '@/components/templates/ClassicSidebar'
 import ProductCardList from '@/components/templates/ProductCardList'
+import ProductCardCompact from '@/components/templates/ProductCardCompact'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -82,6 +83,33 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
             </div>
           )}
         </div>
+      </div>
+    )
+  }
+
+  if (settings.STORE_TEMPLATE === 'COMPACT_STORE') {
+    return (
+      <div className="flex flex-col gap-8 animate-fade-in">
+        <header className="gale-panel p-6 border border-white/10 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-neon-purple/10 border border-neon-purple/20 text-neon-purple">
+              <DynamicIcon name={category.icon} fallback={Zap} size={24} />
+            </div>
+            <div>
+              <h1 className="text-2xl font-black text-white">{category.name}</h1>
+              <p className="text-xs text-gray-400">Produtos da categoria {category.name}</p>
+            </div>
+          </div>
+          <span className="text-xs font-bold text-neon-purple px-3 py-1 bg-neon-purple/10 rounded-full border border-neon-purple/20">
+            {category.products.length} produtos
+          </span>
+        </header>
+
+        <section className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          {category.products.map((product) => (
+            <ProductCardCompact key={product.id} product={product} />
+          ))}
+        </section>
       </div>
     )
   }

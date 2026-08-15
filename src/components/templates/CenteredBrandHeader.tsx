@@ -35,11 +35,11 @@ export default function CenteredBrandHeader({
             src={settings.STORE_BANNER_URL}
             alt="Banner Background"
             fill
-            className="object-cover opacity-20 filter blur-xs scale-105"
+            className="object-cover object-center opacity-60 scale-105"
             priority
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-[#050509]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-[#050509]" />
 
         <div className="relative z-10 max-w-7xl mx-auto flex flex-col items-center justify-center text-center gap-6">
           {/* Logo Gigante Centrado */}
@@ -70,9 +70,9 @@ export default function CenteredBrandHeader({
       </div>
 
       {/* Navigation Sub-Bar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div className="w-full px-4 sm:px-8 lg:px-12 h-16 flex items-center justify-between">
         {/* Navigation Links (Desktop) */}
-        <div className="hidden lg:flex items-center gap-1 overflow-x-auto custom-scrollbar py-2">
+        <div className="hidden lg:flex flex-wrap items-center gap-1.5 py-2">
           {initialNavItems
             .filter((item) => item.isActive)
             .map((item) => (

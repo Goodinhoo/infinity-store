@@ -6,6 +6,7 @@ import DynamicIcon from '@/components/DynamicIcon'
 import { getGlobalSettings } from '@/app/actions/global-settings'
 import ClassicSidebar from '@/components/templates/ClassicSidebar'
 import ProductCardList from '@/components/templates/ProductCardList'
+import ProductCardCompact from '@/components/templates/ProductCardCompact'
 
 export const metadata = {
   title: 'Loja Oficial - Infinity Nexus',
@@ -66,6 +67,40 @@ export default async function StorePage() {
             </div>
           )}
         </div>
+      </div>
+    )
+  }
+
+  if (settings.STORE_TEMPLATE === 'COMPACT_STORE') {
+    return (
+      <div className="flex flex-col gap-8 animate-fade-in">
+        <header className="gale-panel p-6 border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-[#0a0a12] via-[#120820] to-[#06060a]">
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-neon-purple">E-Commerce Rápido</span>
+            <h1 className="text-2xl font-black text-white">Catálogo de Produtos</h1>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Link href="/loja" className="px-3 py-1.5 rounded-lg text-xs font-bold bg-neon-purple text-white">
+              Todos ({allProducts.length})
+            </Link>
+            {categories.map((cat) => (
+              <Link
+                key={cat.id}
+                href={`/loja/${cat.slug}`}
+                className="px-3 py-1.5 rounded-lg text-xs font-bold bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10"
+              >
+                {cat.name} ({cat.products.length})
+              </Link>
+            ))}
+          </div>
+        </header>
+
+        <section className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          {allProducts.map((product) => (
+            <ProductCardCompact key={product.id} product={product} />
+          ))}
+        </section>
       </div>
     )
   }

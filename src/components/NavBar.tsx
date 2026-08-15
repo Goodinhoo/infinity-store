@@ -9,6 +9,7 @@ import { User, Menu, X } from 'lucide-react'
 import { resolveLucideIcon } from '@/components/DynamicIcon'
 import { useModules, useGlobalSettings } from './Providers'
 import CenteredBrandHeader from './templates/CenteredBrandHeader'
+import CompactHeader from './templates/CompactHeader'
 
 type NavItem = {
   id: number
@@ -49,6 +50,10 @@ export default function NavBar({ initialNavItems }: { initialNavItems: NavItem[]
 
   if (settings.STORE_TEMPLATE === 'CLASSIC_PORTAL') {
     return <CenteredBrandHeader initialNavItems={initialNavItems} />
+  }
+
+  if (settings.STORE_TEMPLATE === 'COMPACT_STORE') {
+    return <CompactHeader initialNavItems={initialNavItems} />
   }
 
   return (
