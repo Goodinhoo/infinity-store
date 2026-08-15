@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getServersAdmin, createMinecraftServer, updateMinecraftServer, deleteMinecraftServer, testRconConnection } from '@/app/actions/admin-servers'
-import { Plus, Edit2, Trash2, Server, Terminal, Loader2, CheckCircle2, XCircle } from 'lucide-react'
+import { getServersAdmin, createMinecraftServer, updateMinecraftServer, deleteMinecraftServer, testRconConnection, sendRconCommand } from '@/app/actions/admin-servers'
+import { Plus, Edit2, Trash2, Server, Terminal, Loader2, CheckCircle2, XCircle, Send, Radio } from 'lucide-react'
 import { Toast } from '@/lib/toast'
 import Modal from '@/components/Modal'
 
@@ -20,18 +20,19 @@ export default function AdminServers() {
   const [servers, setServers] = useState<MinecraftServer[]>([])
   const [loading, setLoading] = useState(true)
 
-  // Modal State
+  // Edit/Create Modal State
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
-  
   const [fName, setFName] = useState('')
   const [fIp, setFIp] = useState('')
   const [fPort, setFPort] = useState(25575)
   const [fPassword, setFPassword] = useState('')
 
-  // Test Connection State
-  const [testingId, setTestingId] = useState<number | null>(null)
-  const [testResult, setTestResult] = useState<{ id: number; success: boolean; msg: string } | null>(null)
+  // Terminal Console Modal State
+  const [activeConsoleServer, setActiveConsoleServer] = useState<MinecraftServer | null>(null)
+  const [consoleLogs, setConsoleLogs] = useState<Array<{ type: 'sys' | 'success' | 'error' | 'cmd'; text: string }>>([])
+  const [customCommand, setCustomCommand] = useState('')
+  const [executingCmd, setExecutingCmd] = useState(false)
 
   useEffect(() => {
     loadData()
@@ -109,9 +110,13 @@ export default function AdminServers() {
     }
   }
 
-  async function handleTestConnection(item: MinecraftServer) {
-    setTestingId(item.id)
-    setTestResult(null)
+  async function handleOpenConsole(item: MinecraftServer) {
+    setActiveConsoleServer(item)
+    setConsoleLogs([
+      { type: 'sys', text: `[RCON Console] A iniciar conexão a ${item.ip}:${item.rconPort}...` }
+    ])
+    setExecutingCmd(true)
+
     try {
       const res = await testRconConnection({
         ip: item.ip,
@@ -120,18 +125,54 @@ export default function AdminServers() {
       })
 
       if (res.success) {
-        setTestResult({ id: item.id, success: true, msg: res.message || 'OK' })
-        Toast.fire({ icon: 'success', title: 'Conexão RCON com sucesso!' })
+        setConsoleLogs(prev => [
+          ...prev,
+          { type: 'success', text: `[RCON OK] Autenticação bem sucedida!` },
+          { type: 'success', text: `[Resposta] ${res.message}` }
+        ])
+        Toast.fire({ icon: 'success', title: 'Conexão RCON Estabelecida!' })
       } else {
-        setTestResult({ id: item.id, success: false, msg: res.error || 'Falha na conexão.' })
-        Toast.fire({ icon: 'error', title: res.error || 'Falha ao ligar via RCON.' })
+        setConsoleLogs(prev => [
+          ...prev,
+          { type: 'error', text: `[ERRO RCON] ${res.error || 'Falha de conexão.'}` }
+        ])
+        Toast.fire({ icon: 'error', title: 'Falha na conexão RCON' })
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Erro desconhecido.'
-      setTestResult({ id: item.id, success: false, msg })
-      Toast.fire({ icon: 'error', title: 'Erro na conexão RCON.' })
+      const msg = err instanceof Error ? err.message : 'Erro na conexão.'
+      setConsoleLogs(prev => [...prev, { type: 'error', text: `[EXCEÇÃO] ${msg}` }])
     } finally {
-      setTestingId(null)
+      setExecutingCmd(false)
+    }
+  }
+
+  async function handleExecuteCustomCommand(e: React.FormEvent) {
+    e.preventDefault()
+    if (!customCommand.trim() || !activeConsoleServer || executingCmd) return
+
+    const cmdToRun = customCommand.trim()
+    setCustomCommand('')
+    setConsoleLogs(prev => [...prev, { type: 'cmd', text: `> ${cmdToRun}` }])
+    setExecutingCmd(true)
+
+    try {
+      const res = await sendRconCommand({
+        ip: activeConsoleServer.ip,
+        rconPort: activeConsoleServer.rconPort,
+        rconPassword: activeConsoleServer.rconPassword,
+        command: cmdToRun
+      })
+
+      if (res.success) {
+        setConsoleLogs(prev => [...prev, { type: 'success', text: res.message }])
+      } else {
+        setConsoleLogs(prev => [...prev, { type: 'error', text: res.error || 'Erro no comando.' }])
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Erro no envio.'
+      setConsoleLogs(prev => [...prev, { type: 'error', text: msg }])
+    } finally {
+      setExecutingCmd(false)
     }
   }
 
@@ -139,105 +180,116 @@ export default function AdminServers() {
 
   return (
     <div className="p-8 w-full max-w-6xl mx-auto space-y-8 animate-fade-in">
-      <div className="flex justify-between items-center">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/10 pb-6">
         <div>
           <h1 className="text-2xl font-black uppercase text-white mb-1 flex items-center gap-3">
             <Server className="text-neon-purple" size={28} />
             Servidores Minecraft & RCON
           </h1>
           <p className="text-gray-400 text-sm">
-            Regista os teus servidores de Minecraft para entrega automática de VIPs e itens via comandos RCON em tempo real.
+            Gere os teus servidores de Minecraft para entrega automática de VIPs e itens via comandos RCON em tempo real.
           </p>
         </div>
         <button
           onClick={() => handleOpenModal()}
-          className="px-4 py-2.5 bg-neon-purple/20 text-neon-purple border border-neon-purple/30 rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-neon-purple/30 transition-colors shadow-lg"
+          className="px-5 py-3 bg-neon-purple hover:bg-neon-purple/80 text-white font-bold text-xs rounded-xl transition-all shadow-[0_0_20px_rgba(168,85,247,0.4)] flex items-center gap-2 cursor-pointer shrink-0"
         >
           <Plus size={18} /> Registar Servidor
         </button>
       </div>
 
-      {/* Tabela de Servidores */}
-      <div className="gale-panel border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
-        <table className="w-full text-left text-sm text-gray-300">
-          <thead className="bg-black/40 text-gray-400 uppercase text-xs tracking-wider border-b border-white/10">
-            <tr>
-              <th className="p-4">Nome do Servidor</th>
-              <th className="p-4">IP / Hostname</th>
-              <th className="p-4">Porta RCON</th>
-              <th className="p-4 text-center">Teste RCON</th>
-              <th className="p-4 text-right">Ações</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/5 bg-black/20">
-            {servers.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="p-8 text-center text-gray-500">
-                  Nenhum servidor registado. Clica no botão acima para registar o teu primeiro servidor de Minecraft!
-                </td>
-              </tr>
-            ) : (
-              servers.map((item) => (
-                <tr key={item.id} className="hover:bg-white/5 transition-colors">
-                  <td className="p-4 font-bold text-white flex items-center gap-2">
-                    <Server size={18} className="text-neon-blue" />
-                    {item.name}
-                  </td>
-                  <td className="p-4 font-mono text-gray-300">
-                    {item.ip}
-                  </td>
-                  <td className="p-4 font-mono text-neon-purple font-bold">
-                    {item.rconPort}
-                  </td>
-                  <td className="p-4 text-center">
-                    <button
-                      onClick={() => handleTestConnection(item)}
-                      disabled={testingId === item.id}
-                      className="px-3 py-1.5 bg-neon-blue/10 border border-neon-blue/30 text-neon-blue hover:bg-neon-blue/20 rounded-lg text-xs font-bold transition-all inline-flex items-center gap-1.5 disabled:opacity-50"
-                    >
-                      {testingId === item.id ? (
-                        <>
-                          <Loader2 size={14} className="animate-spin" /> A testar...
-                        </>
-                      ) : (
-                        <>
-                          <Terminal size={14} /> Testar Conexão RCON
-                        </>
-                      )}
-                    </button>
-                    {testResult && testResult.id === item.id && (
-                      <div className={`mt-2 p-2 rounded-lg text-xs font-mono text-left flex items-start gap-2 ${
-                        testResult.success ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-300' : 'bg-red-500/10 border border-red-500/20 text-red-300'
-                      }`}>
-                        {testResult.success ? <CheckCircle2 size={14} className="shrink-0 mt-0.5" /> : <XCircle size={14} className="shrink-0 mt-0.5" />}
-                        <span className="line-clamp-2">{testResult.msg}</span>
-                      </div>
-                    )}
-                  </td>
-                  <td className="p-4 text-right space-x-2">
+      {/* Grid de Cards de Servidores */}
+      {servers.length === 0 ? (
+        <div className="gale-panel p-12 border border-white/10 text-center space-y-4">
+          <div className="w-16 h-16 rounded-2xl bg-neon-purple/10 border border-neon-purple/20 flex items-center justify-center text-neon-purple mx-auto">
+            <Server size={32} />
+          </div>
+          <h3 className="text-lg font-bold text-white uppercase">Nenhum Servidor Registado</h3>
+          <p className="text-xs text-gray-400 max-w-md mx-auto">
+            Regista o teu primeiro servidor de Minecraft para ativação automática de compras na loja!
+          </p>
+          <button
+            onClick={() => handleOpenModal()}
+            className="px-5 py-2.5 bg-neon-purple text-white font-bold text-xs rounded-xl shadow-lg inline-flex items-center gap-2"
+          >
+            <Plus size={16} /> Adicionar Servidor
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {servers.map((item) => (
+            <div
+              key={item.id}
+              className="gale-panel p-6 border border-white/10 rounded-2xl flex flex-col justify-between space-y-6 hover:border-neon-purple/50 transition-all duration-300 group shadow-2xl relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-neon-purple/5 rounded-full blur-2xl group-hover:bg-neon-purple/10 transition-all" />
+
+              <div>
+                {/* Top Badge & Name */}
+                <div className="flex items-center justify-between gap-4 mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-neon-purple/20 to-neon-blue/20 border border-white/10 flex items-center justify-center text-neon-purple group-hover:scale-105 transition-transform">
+                      <Server size={24} />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-extrabold text-white group-hover:text-neon-purple transition-colors">
+                        {item.name}
+                      </h3>
+                      <p className="text-[10px] text-gray-400 flex items-center gap-1.5 mt-0.5 font-mono">
+                        <Radio size={12} className="text-emerald-400 animate-pulse" />
+                        RCON Habilitado
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => handleOpenModal(item)}
-                      className="p-2 bg-white/5 hover:bg-white/10 text-blue-400 rounded-lg transition-colors"
-                      title="Editar"
+                      className="p-2.5 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white rounded-xl transition-all border border-white/5"
+                      title="Editar Definições"
                     >
                       <Edit2 size={16} />
                     </button>
                     <button
                       onClick={() => handleDelete(item.id)}
-                      className="p-2 bg-white/5 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors"
-                      title="Eliminar"
+                      className="p-2.5 bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-400 rounded-xl transition-all border border-white/5"
+                      title="Eliminar Servidor"
                     >
                       <Trash2 size={16} />
                     </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+                  </div>
+                </div>
 
-      {/* Modal Criar/Editar Servidor */}
+                {/* Details Pills */}
+                <div className="grid grid-cols-2 gap-3 pt-2">
+                  <div className="p-3 bg-black/40 border border-white/5 rounded-xl">
+                    <span className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">IP / Hostname</span>
+                    <code className="text-xs text-neon-blue font-mono font-bold truncate block">{item.ip}</code>
+                  </div>
+                  <div className="p-3 bg-black/40 border border-white/5 rounded-xl">
+                    <span className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Porta RCON</span>
+                    <code className="text-xs text-neon-purple font-mono font-bold block">{item.rconPort}</code>
+                  </div>
+                </div>
+              </div>
+
+              {/* Console Trigger Button */}
+              <div className="pt-2">
+                <button
+                  onClick={() => handleOpenConsole(item)}
+                  className="w-full py-3 bg-white/5 hover:bg-neon-purple/20 text-white font-bold text-xs rounded-xl border border-white/10 hover:border-neon-purple/40 transition-all flex items-center justify-center gap-2 group/btn cursor-pointer"
+                >
+                  <Terminal size={16} className="text-neon-blue group-hover/btn:text-neon-purple transition-colors" />
+                  <span>Consola & Teste RCON</span>
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Modal Criar / Editar Servidor */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -255,8 +307,8 @@ export default function AdminServers() {
               type="text"
               value={fName}
               onChange={e => setFName(e.target.value)}
-              className="w-full bg-[#050508] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon-purple/50"
-              placeholder="Ex: Survival 1.20 ou RankUP"
+              className="w-full bg-[#050508] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon-purple/50 transition-colors"
+              placeholder="Ex: Infinity Nexus Survival ou RankUP"
             />
           </div>
 
@@ -267,8 +319,8 @@ export default function AdminServers() {
                 type="text"
                 value={fIp}
                 onChange={e => setFIp(e.target.value)}
-                className="w-full bg-[#050508] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon-purple/50 font-mono"
-                placeholder="Ex: 185.123.45.67 ou mc.teuservidor.com"
+                className="w-full bg-[#050508] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon-purple/50 font-mono transition-colors"
+                placeholder="Ex: 148.230.76.21"
               />
             </div>
             <div>
@@ -277,8 +329,8 @@ export default function AdminServers() {
                 type="number"
                 value={fPort}
                 onChange={e => setFPort(parseInt(e.target.value) || 25575)}
-                className="w-full bg-[#050508] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon-purple/50 font-mono"
-                placeholder="25575"
+                className="w-full bg-[#050508] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon-purple/50 font-mono transition-colors"
+                placeholder="25987"
               />
             </div>
           </div>
@@ -289,8 +341,8 @@ export default function AdminServers() {
               type="password"
               value={fPassword}
               onChange={e => setFPassword(e.target.value)}
-              className="w-full bg-[#050508] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon-purple/50 font-mono"
-              placeholder="A password definida em server.properties (rcon.password)"
+              className="w-full bg-[#050508] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon-purple/50 font-mono transition-colors"
+              placeholder="Password definida em server.properties (rcon.password)"
             />
           </div>
         </div>
@@ -298,16 +350,83 @@ export default function AdminServers() {
         <div className="flex gap-3 mt-6">
           <button
             onClick={() => setIsModalOpen(false)}
-            className="flex-1 px-5 py-2.5 bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10 font-bold text-xs rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer select-none"
+            className="flex-1 px-5 py-2.5 bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10 font-bold text-xs rounded-xl transition-all cursor-pointer"
           >
             Cancelar
           </button>
           <button
             onClick={handleSave}
-            className="flex-1 px-5 py-2.5 bg-neon-purple hover:bg-neon-purple/80 text-white font-bold text-xs rounded-xl transition-all shadow-[0_0_15px_rgba(168,85,247,0.3)] disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer select-none"
+            className="flex-1 px-5 py-2.5 bg-neon-purple hover:bg-neon-purple/80 text-white font-bold text-xs rounded-xl transition-all shadow-[0_0_15px_rgba(168,85,247,0.3)] cursor-pointer"
           >
             Guardar Servidor
           </button>
+        </div>
+      </Modal>
+
+      {/* Modal Interactive RCON Terminal Console */}
+      <Modal
+        isOpen={!!activeConsoleServer}
+        onClose={() => setActiveConsoleServer(null)}
+        title={
+          <div className="flex items-center gap-3">
+            <Terminal className="text-neon-purple" size={22} />
+            <span>Consola RCON — {activeConsoleServer?.name}</span>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          <div className="p-3 bg-black/50 border border-white/10 rounded-xl flex items-center justify-between text-xs font-mono">
+            <span className="text-gray-400">Host: <strong className="text-neon-blue">{activeConsoleServer?.ip}:{activeConsoleServer?.rconPort}</strong></span>
+            <span className="text-emerald-400 flex items-center gap-1.5 font-bold">
+              <Radio size={12} className="animate-pulse" /> RCON Online
+            </span>
+          </div>
+
+          {/* Terminal Console Output */}
+          <div className="h-64 bg-[#050509] border border-white/10 rounded-xl p-4 font-mono text-xs overflow-y-auto space-y-2 custom-scrollbar shadow-inner">
+            {consoleLogs.map((log, i) => (
+              <div key={i} className="flex items-start gap-2">
+                {log.type === 'sys' && <span className="text-gray-500">{log.text}</span>}
+                {log.type === 'cmd' && <span className="text-neon-blue font-bold">{log.text}</span>}
+                {log.type === 'success' && (
+                  <span className="text-emerald-400 flex items-start gap-1.5">
+                    <CheckCircle2 size={14} className="shrink-0 mt-0.5" />
+                    <span>{log.text}</span>
+                  </span>
+                )}
+                {log.type === 'error' && (
+                  <span className="text-red-400 flex items-start gap-1.5">
+                    <XCircle size={14} className="shrink-0 mt-0.5" />
+                    <span>{log.text}</span>
+                  </span>
+                )}
+              </div>
+            ))}
+            {executingCmd && (
+              <div className="flex items-center gap-2 text-neon-purple animate-pulse">
+                <Loader2 size={14} className="animate-spin" />
+                <span>A enviar comando RCON...</span>
+              </div>
+            )}
+          </div>
+
+          {/* Live Command Line Input */}
+          <form onSubmit={handleExecuteCustomCommand} className="flex gap-2">
+            <input
+              type="text"
+              value={customCommand}
+              onChange={e => setCustomCommand(e.target.value)}
+              placeholder="Escreve um comando (ex: list, say Olá, version)..."
+              className="flex-1 bg-[#050508] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-neon-purple"
+            />
+            <button
+              type="submit"
+              disabled={executingCmd || !customCommand.trim()}
+              className="px-4 py-2.5 bg-neon-purple hover:bg-neon-purple/80 text-white font-bold text-xs rounded-xl transition-all disabled:opacity-50 flex items-center gap-2 shrink-0 cursor-pointer"
+            >
+              <Send size={14} /> Enviar
+            </button>
+          </form>
         </div>
       </Modal>
     </div>

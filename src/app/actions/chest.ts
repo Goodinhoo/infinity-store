@@ -3,6 +3,8 @@
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/../auth'
 import { revalidatePath } from 'next/cache'
+import { RconClient } from '@/lib/rcon'
+import { logRcon } from '@/lib/audit'
 
 export async function redeemChestItem(itemId: number, targetPlayer: string) {
   if (!targetPlayer || targetPlayer.trim() === '') {
@@ -53,11 +55,41 @@ export async function redeemChestItem(itemId: number, targetPlayer: string) {
           // Reverte a transação (isto falha a transação e vai para o bloco catch)
           throw new Error(`Para enviar créditos, o jogador "${targetPlayer}" tem de ter o seu nick registado neste site.`)
         }
-      } else if (item.type === 'COMMAND' || item.type === 'PRODUCT') {
-        // AQUI ENTRARIA O SISTEMA DE RCON
-        // const commandToExecute = item.command?.replace('{player}', targetPlayer.trim())
-        // await rcon.execute(commandToExecute)
-        // Como pedido, por enquanto apenas guardamos na DB como resgatado.
+      } else if ((item.type === 'COMMAND' || item.type === 'PRODUCT') && item.command) {
+        const servers = await tx.minecraftServer.findMany({ where: { isActive: true } })
+        if (servers.length > 0) {
+          const targetServer = servers[0]
+          const rawCmd = item.command.replace(/\{player\}/g, targetPlayer.trim())
+          const commands = rawCmd.split(/;|\n/).map(c => c.trim()).filter(Boolean)
+
+          for (const cmd of commands) {
+            try {
+              const output = await RconClient.executeCommand(
+                targetServer.ip,
+                targetServer.rconPort,
+                targetServer.rconPassword,
+                cmd
+              )
+              await logRcon({
+                serverName: targetServer.name,
+                player: targetPlayer.trim(),
+                command: cmd,
+                status: 'SUCCESS',
+                response: output || 'OK'
+              })
+            } catch (rconErr) {
+              const msg = rconErr instanceof Error ? rconErr.message : 'Erro RCON'
+              await logRcon({
+                serverName: targetServer.name,
+                player: targetPlayer.trim(),
+                command: cmd,
+                status: 'FAILED',
+                response: msg
+              })
+              throw new Error(`Falha no servidor RCON (${targetServer.name}): ${msg}`)
+            }
+          }
+        }
       }
     })
 

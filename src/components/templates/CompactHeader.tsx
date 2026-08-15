@@ -4,7 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import CartButton from '../CartButton'
 import DynamicIcon from '../DynamicIcon'
-import { useGlobalSettings } from '../Providers'
+import { useGlobalSettings, useModules } from '../Providers'
 import { useState, useRef, useEffect } from 'react'
 import { User, Menu, X, Search } from 'lucide-react'
 
@@ -23,10 +23,28 @@ export default function CompactHeader({
   initialNavItems: NavItem[]
 }) {
   const settings = useGlobalSettings()
+  const modules = useModules()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
+
+  const urlToModule: Record<string, boolean> = {
+    '/vips': modules.MODULE_VIPTABLE,
+    '/sugestoes': modules.MODULE_SUGGESTIONS,
+    '/downloads': modules.MODULE_DOWNLOADS,
+    '/votos': modules.MODULE_VOTES,
+    '/roleta': modules.MODULE_FORTUNE_WHEEL,
+    '/staff': modules.MODULE_STAFF,
+    '/changelog': modules.MODULE_CHANGELOG,
+    '/candidaturas': modules.MODULE_APPLICATIONS,
+  }
+
+  const activeNavItems = initialNavItems.filter((item) => {
+    if (!item.isActive) return false
+    if (item.isSystem && urlToModule[item.url] === false) return false
+    return true
+  })
 
   useEffect(() => {
     if (searchOpen) {
@@ -79,9 +97,7 @@ export default function CompactHeader({
         ) : (
           /* Normal Navigation Links */
           <nav className="hidden lg:flex items-center gap-1">
-            {initialNavItems
-              .filter((item) => item.isActive)
-              .map((item) => (
+            {activeNavItems.map((item) => (
                 <Link
                   key={item.id}
                   href={item.url}
@@ -129,9 +145,7 @@ export default function CompactHeader({
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <div className="lg:hidden border-t border-white/10 bg-[#08080c] px-4 py-4 space-y-2 animate-fade-in">
-          {initialNavItems
-            .filter((item) => item.isActive)
-            .map((item) => (
+          {activeNavItems.map((item) => (
               <Link
                 key={item.id}
                 href={item.url}

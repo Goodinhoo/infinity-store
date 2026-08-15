@@ -48,6 +48,10 @@ export default function NavBar({ initialNavItems }: { initialNavItems: NavItem[]
     icon: resolveLucideIcon(item.icon)
   }))
 
+  if (pathname?.startsWith('/admin')) {
+    return null
+  }
+
   if (settings.STORE_TEMPLATE === 'CLASSIC_PORTAL') {
     return <CenteredBrandHeader initialNavItems={initialNavItems} />
   }

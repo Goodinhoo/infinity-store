@@ -5,7 +5,7 @@ import Image from 'next/image'
 import CartButton from '../CartButton'
 import ServerIPCard from '../ServerIPCard'
 import DynamicIcon from '../DynamicIcon'
-import { useGlobalSettings } from '../Providers'
+import { useGlobalSettings, useModules } from '../Providers'
 import { useState } from 'react'
 import { User, Menu, X } from 'lucide-react'
 
@@ -24,7 +24,25 @@ export default function CenteredBrandHeader({
   initialNavItems: NavItem[]
 }) {
   const settings = useGlobalSettings()
+  const modules = useModules()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  const urlToModule: Record<string, boolean> = {
+    '/vips': modules.MODULE_VIPTABLE,
+    '/sugestoes': modules.MODULE_SUGGESTIONS,
+    '/downloads': modules.MODULE_DOWNLOADS,
+    '/votos': modules.MODULE_VOTES,
+    '/roleta': modules.MODULE_FORTUNE_WHEEL,
+    '/staff': modules.MODULE_STAFF,
+    '/changelog': modules.MODULE_CHANGELOG,
+    '/candidaturas': modules.MODULE_APPLICATIONS,
+  }
+
+  const activeNavItems = initialNavItems.filter((item) => {
+    if (!item.isActive) return false
+    if (item.isSystem && urlToModule[item.url] === false) return false
+    return true
+  })
 
   return (
     <header className="w-full bg-[#050509] border-b border-white/10 shadow-2xl">
@@ -73,9 +91,7 @@ export default function CenteredBrandHeader({
       <div className="w-full px-4 sm:px-8 lg:px-12 h-16 flex items-center justify-between">
         {/* Navigation Links (Desktop) */}
         <div className="hidden lg:flex flex-wrap items-center gap-1.5 py-2">
-          {initialNavItems
-            .filter((item) => item.isActive)
-            .map((item) => (
+          {activeNavItems.map((item) => (
               <Link
                 key={item.id}
                 href={item.url}
@@ -111,9 +127,7 @@ export default function CenteredBrandHeader({
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <div className="lg:hidden border-t border-white/10 bg-[#08080c] px-4 py-4 space-y-2 animate-fade-in">
-          {initialNavItems
-            .filter((item) => item.isActive)
-            .map((item) => (
+          {activeNavItems.map((item) => (
               <Link
                 key={item.id}
                 href={item.url}

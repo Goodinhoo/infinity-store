@@ -4,6 +4,7 @@ import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
 import CartSidebar from "@/components/CartSidebar";
 import { Providers } from "@/components/Providers";
+import MainWrapper from "@/components/MainWrapper";
 import { getModules } from "@/app/actions/settings";
 import { getGlobalSettings } from "@/app/actions/global-settings";
 import { getNavigationItems } from "@/app/actions/admin-navigation";
@@ -55,9 +56,9 @@ export default async function RootLayout({
         )}
         <Providers initialModules={modules} initialSettings={settings}>
           <NavBar initialNavItems={navItems} />
-          <main className="flex-1 max-w-7xl 2xl:max-w-[90vw] w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <MainWrapper>
             {children}
-          </main>
+          </MainWrapper>
           <CartSidebar />
           <Footer />
         </Providers>

@@ -9,6 +9,7 @@ import { verifyCreatorCode } from '@/app/actions/creator-codes'
 import { getCashbackPercentage } from '@/app/actions/settings'
 import { useModules } from './Providers'
 import { Toast } from '@/lib/toast'
+import { usePathname } from 'next/navigation'
 
 export default function CartSidebar() {
   const { items, isOpen, closeCart, removeItem, updateQuantity, getSubtotal, getTotal, clearCart, appliedCoupon, applyCoupon, removeCoupon, appliedCreatorCode, applyCreatorCode, removeCreatorCode } = useCartStore()
@@ -26,6 +27,9 @@ export default function CartSidebar() {
     setMounted(true)
   }, [modules.MODULE_CASHBACK])
 
+  const pathname = usePathname()
+
+  if (pathname?.startsWith('/admin')) return null
   if (!mounted || !isOpen) return null
 
   const handleApplyCode = async () => {

@@ -3,9 +3,16 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useGlobalSettings } from './Providers'
+import { usePathname } from 'next/navigation'
 
 export default function Footer() {
   const settings = useGlobalSettings()
+  const pathname = usePathname()
+
+  if (pathname?.startsWith('/admin')) {
+    return null
+  }
+
   return (
     <footer className="border-t border-white/5 bg-[#050508] text-gray-400 text-sm py-12 mt-20">
       <div className="max-w-7xl 2xl:max-w-[90vw] mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8">

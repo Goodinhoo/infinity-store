@@ -5,6 +5,7 @@ export type PermissionKey =
   | 'MANAGE_ORDERS'
   | 'MANAGE_COUPONS'
   | 'MANAGE_GIFTCARDS'
+  | 'MANAGE_SERVERS'
 
   // Comunidade & Conteúdo
   | 'MANAGE_PAGES'
@@ -42,6 +43,7 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
       { key: 'MANAGE_ORDERS', label: 'Encomendas', description: 'Ver e atualizar o estado das compras dos jogadores' },
       { key: 'MANAGE_COUPONS', label: 'Cupões', description: 'Criar e gerir cupões de desconto' },
       { key: 'MANAGE_GIFTCARDS', label: 'Cartões Presente', description: 'Gerar e eliminar gift cards' },
+      { key: 'MANAGE_SERVERS', label: 'Servidores RCON', description: 'Adicionar, testar e editar conexões RCON de servidores Minecraft' },
     ]
   },
   {

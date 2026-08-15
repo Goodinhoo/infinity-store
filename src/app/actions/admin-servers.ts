@@ -18,17 +18,36 @@ export async function getServersPublic() {
   })
 }
 
+function parseServerAddress(rawIp: string, rawPort?: number): { ip: string; port: number } {
+  let ip = (rawIp || '').trim()
+  let port = Number(rawPort) || 25575
+
+  if (ip.includes(':')) {
+    const parts = ip.split(':')
+    ip = parts[0].trim()
+    const extractedPort = parseInt(parts[1], 10)
+    if (!isNaN(extractedPort) && extractedPort > 0) {
+      if (!rawPort || rawPort === 25575) {
+        port = extractedPort
+      }
+    }
+  }
+
+  return { ip, port }
+}
+
 export async function createMinecraftServer(data: {
   name: string
   ip: string
   rconPort: number
   rconPassword: string
 }) {
+  const parsed = parseServerAddress(data.ip, data.rconPort)
   const server = await prisma.minecraftServer.create({
     data: {
       name: data.name,
-      ip: data.ip.trim(),
-      rconPort: data.rconPort || 25575,
+      ip: parsed.ip,
+      rconPort: parsed.port,
       rconPassword: data.rconPassword,
       isActive: true
     }
@@ -45,12 +64,13 @@ export async function updateMinecraftServer(id: number, data: {
   rconPassword: string
   isActive?: boolean
 }) {
+  const parsed = parseServerAddress(data.ip, data.rconPort)
   const server = await prisma.minecraftServer.update({
     where: { id },
     data: {
       name: data.name,
-      ip: data.ip.trim(),
-      rconPort: data.rconPort || 25575,
+      ip: parsed.ip,
+      rconPort: parsed.port,
       rconPassword: data.rconPassword,
       isActive: data.isActive !== undefined ? data.isActive : true
     }
@@ -75,7 +95,8 @@ export async function testRconConnection(data: {
   rconPassword: string
 }) {
   try {
-    const client = new RconClient(data.ip.trim(), data.rconPort || 25575, data.rconPassword)
+    const parsed = parseServerAddress(data.ip, data.rconPort)
+    const client = new RconClient(parsed.ip, parsed.port, data.rconPassword)
     await client.connect()
     
     // Send a safe test command
@@ -91,6 +112,50 @@ export async function testRconConnection(data: {
     }
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'Falha ao ligar ao servidor RCON.'
+    return {
+      success: false,
+      error: msg
+    }
+  }
+}
+
+export async function sendRconCommand(data: {
+  ip: string
+  rconPort: number
+  rconPassword: string
+  command: string
+}) {
+  const parsed = parseServerAddress(data.ip, data.rconPort)
+  try {
+    const client = new RconClient(parsed.ip, parsed.port, data.rconPassword)
+    await client.connect()
+    
+    const response = await client.send(data.command)
+    client.disconnect()
+
+    await logRcon({
+      serverName: parsed.ip,
+      player: 'Admin Console',
+      command: data.command,
+      response: response || 'Executado com Sucesso',
+      status: 'SUCCESS'
+    })
+
+    return {
+      success: true,
+      message: response || 'Comando enviado e executado no Minecraft!'
+    }
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : 'Falha ao executar comando via RCON.'
+    
+    await logRcon({
+      serverName: parsed.ip,
+      player: 'Admin Console',
+      command: data.command,
+      response: msg,
+      status: 'FAILED'
+    })
+
     return {
       success: false,
       error: msg

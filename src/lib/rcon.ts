@@ -8,8 +8,23 @@ export class RconClient {
   private requestId = 0
 
   constructor(host: string, port = 25575, password = '') {
-    this.host = host
-    this.port = port
+    let cleanHost = (host || '').trim()
+    let cleanPort = Number(port) || 25575
+
+    if (cleanHost.includes(':')) {
+      const parts = cleanHost.split(':')
+      cleanHost = parts[0].trim()
+      const parsedPort = parseInt(parts[1], 10)
+      if (!isNaN(parsedPort) && parsedPort > 0) {
+        // Se o utilizador passou 25575 (porta padrao RCON) ou nao passou porta, usa a porta extraida do IP
+        if (cleanPort === 25575 || !cleanPort) {
+          cleanPort = parsedPort
+        }
+      }
+    }
+
+    this.host = cleanHost
+    this.port = cleanPort
     this.password = password
   }
 
